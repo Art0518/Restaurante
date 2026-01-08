@@ -1,0 +1,58 @@
+﻿<!-- MODAL DE AUTENTICACIÓN -->
+<div id="auth-modal-overlay" class="auth-modal-overlay" style="display:none;">
+    <div class="auth-modal">
+
+        <button class="close-btn" onclick="closeAuthModal()">×</button>
+
+        <h2 id="auth-title">Iniciar Sesión</h2>
+
+        <!-- LOGIN -->
+        <div id="form-login">
+            <label>Email</label>
+            <input id="login-email" type="email">
+
+            <label>Contraseña</label>
+            <input id="login-pass" type="password">
+
+            <button class="btn-verde" onclick="login()">Entrar</button>
+
+            <p>
+                ¿No tienes cuenta?
+                <a href="#" onclick="showRegister()">Registrarse</a>
+            </p>
+        </div>
+
+        <!-- REGISTRO -->
+        <div id="form-register" style="display:none;">
+            <label>Nombre Completo</label>
+            <input id="reg-nombre" placeholder="Ej: Juan Pérez">
+            <small>Debe incluir nombre y apellido</small>
+
+            <label>Cédula</label>
+            <input id="reg-cedula" placeholder="001-1234567-8" maxlength="13">
+            <small>Formato: XXX-XXXXXXX-X</small>
+
+            <label>Email</label>
+            <input id="reg-email" type="email" placeholder="ejemplo@correo.com">
+
+            <label>Contraseña</label>
+            <input id="reg-pass" type="password" placeholder="Mínimo 8 caracteres, mayúscula, minúscula y número">
+
+            <label>Teléfono</label>
+            <input id="reg-tel" placeholder="809-555-1234" maxlength="12">
+            <small>Formato: 809/829/849 + 7 dígitos</small>
+
+            <label>Dirección</label>
+            <input id="reg-dir" placeholder="Calle, sector, número">
+            <small>Dirección completa con números y letras</small>
+
+            <button class="btn-verde" onclick="registrar()">Crear cuenta</button>
+
+            <p>
+                ¿Ya tienes cuenta?
+                <a href="#" onclick="showLogin()">Iniciar sesión</a>
+            </p>
+        </div>
+
+    </div>
+</div>

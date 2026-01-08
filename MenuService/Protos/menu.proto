@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+option csharp_namespace = "MenuService.Protos";
+
+package menu;
+
+service MenuGrpc {
+  rpc ObtenerPlatos (ObtenerPlatosRequest) returns (ObtenerPlatosResponse);
+  rpc ObtenerPlatoById (ObtenerPlatoByIdRequest) returns (ObtenerPlatoByIdResponse);
+  rpc CrearPlato (CrearPlatoRequest) returns (CrearPlatoResponse);
+  rpc ActualizarPlato (ActualizarPlatoRequest) returns (ActualizarPlatoResponse);
+  rpc EliminarPlato (EliminarPlatoRequest) returns (EliminarPlatoResponse);
+  rpc ObtenerPromociones (ObtenerPromocionesRequest) returns (ObtenerPromocionesResponse);
+  rpc ObtenerPromocionById (ObtenerPromocionByIdRequest) returns (ObtenerPromocionByIdResponse);
+  rpc CrearPromocion (CrearPromocionRequest) returns (CrearPromocionResponse);
+}
+
+// Mensajes para ObtenerPlatos
+message ObtenerPlatosRequest {
+}
+
+message ObtenerPlatosResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Plato platos = 3;
+}
+
+// Mensajes para ObtenerPlatoById
+message ObtenerPlatoByIdRequest {
+  int32 idPlato = 1;
+}
+
+message ObtenerPlatoByIdResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Plato plato = 3;
+}
+
+// Mensajes para CrearPlato
+message CrearPlatoRequest {
+  string nombre = 1;
+  string descripcion = 2;
+  float precio = 3;
+  string categoria = 4;
+  bool activo = 5;
+}
+
+message CrearPlatoResponse {
+  bool success = 1;
+  string mensaje = 2;
+  int32 idPlato = 3;
+  Plato plato = 4;
+}
+
+// Mensajes para ActualizarPlato
+message ActualizarPlatoRequest {
+  int32 idPlato = 1;
+  string nombre = 2;
+  string descripcion = 3;
+  float precio = 4;
+  string categoria = 5;
+  bool activo = 6;
+}
+
+message ActualizarPlatoResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para EliminarPlato
+message EliminarPlatoRequest {
+  int32 idPlato = 1;
+}
+
+message EliminarPlatoResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para ObtenerPromociones
+message ObtenerPromocionesRequest {
+}
+
+message ObtenerPromocionesResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Promocion promociones = 3;
+}
+
+// Mensajes para ObtenerPromocionById
+message ObtenerPromocionByIdRequest {
+  int32 idPromocion = 1;
+}
+
+message ObtenerPromocionByIdResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Promocion promocion = 3;
+}
+
+// Mensajes para CrearPromocion
+message CrearPromocionRequest {
+  string nombre = 1;
+  string descripcion = 2;
+  float porcentajeDescuento = 3;
+  string fechaInicio = 4;
+  string fechaFin = 5;
+  bool activo = 6;
+}
+
+message CrearPromocionResponse {
+  bool success = 1;
+  string mensaje = 2;
+  int32 idPromocion = 3;
+  Promocion promocion = 4;
+}
+
+// Modelos
+message Plato {
+  int32 idPlato = 1;
+  string nombre = 2;
+  string descripcion = 3;
+  float precio = 4;
+  string categoria = 5;
+  bool activo = 6;
+  string fechaCreacion = 7;
+}
+
+message Promocion {
+  int32 idPromocion = 1;
+  string nombre = 2;
+  string descripcion = 3;
+  float porcentajeDescuento = 4;
+  string fechaInicio = 5;
+  string fechaFin = 6;
+  bool activo = 7;
+  string fechaCreacion = 8;
+}

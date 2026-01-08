@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Un Rincón en San Juan - Reservas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .reservas-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 10px;
+        }
+
+        .tarjeta {
+            background: #fffaf2;
+            border: 1px solid #e6d5b8;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            transition: transform 0.2s ease-in-out;
+        }
+
+            .tarjeta:hover {
+                transform: translateY(-4px);
+            }
+
+            .tarjeta p {
+                margin: 3px 0;
+                font-size: 16px;
+            }
+
+            .tarjeta b {
+                color: #6b4f28;
+            }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .btn-modificar {
+            background: #6b8e23;
+            color: white;
+        }
+
+        .btn-confirmar {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-completar {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-cancelar {
+            background: #d9534f;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #fff8e8;
+            width: 380px;
+            padding: 25px;
+            border-radius: 18px;
+            border: 1px solid #e3c69c;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: aparecer 0.25s ease;
+        }
+
+        @keyframes aparecer {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-content label {
+            margin-top: 10px;
+            display: block;
+            color: #5c4323;
+            font-weight: 600;
+        }
+
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #c9b18a;
+            background: #fffdf7;
+            margin-top: 5px;
+        }
+
+        .modal-buttons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-save {
+            background: #6b8e23;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: #d9534f;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: bold;
+        }
+
+        .tarjeta h2 {
+            color: #5b4230;
+            margin-bottom: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #c9b18a;
+            margin-bottom: 5px;
+            background: #fffdf7;
+        }
+
+        .btn-agregar:hover {
+            opacity: .9;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+    <script>
+        fetch("components/navbar.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("navbar-container").innerHTML = html;
+                const s = document.createElement("script");
+                s.src = "js/navbar.js";
+                document.body.appendChild(s);
+            });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+    <script>
+        fetch("components/auth-modal.html")
+         .then(res => res.text())
+            .then(html => {
+      document.getElementById("auth-modal-container").innerHTML = html;
+         })
+      .catch(error => {
+     console.error("Error cargando el modal de autenticación:", error);
+    });
+    </script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+        fetch("components/notification-modal.html")
+.then(res => res.text())
+         .then(html => {
+   document.getElementById("notification-modal-container").innerHTML = html;
+     })
+       .catch(error => {
+ console.error("Error cargando el modal de notificaciones:", error);
+  });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+fetch("components/confirmation-modal.html")
+   .then(res => res.text())
+   .then(html => {
+   document.getElementById("confirmation-modal-container").innerHTML = html;
+    })
+ .catch(error => {
+       console.error("Error cargando el modal de confirmación:", error);
+     });
+    </script>
+
+    <main class="reservas-container">
+
+        <!-- FILTROS -->
+        <!-- 🔽 FILTROS ADMIN RESERVAS (CORREGIDO Y COMPLETO) -->
+        <div class="tarjeta" style="margin-top: 40px;">
+            <h2>Filtros</h2>
+
+            <input id="filtro-id"
+                   type="number"
+                   placeholder="ID Reserva"
+                   style="margin-top:10px;">
+
+            <input id="filtro-cliente"
+                   type="number"
+                   placeholder="ID Cliente"
+                   style="margin-top:10px;">
+
+            <select id="filtro-estado" style="margin-top:10px;">
+                <option value="">Estado</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="CONFIRMADA">Confirmada</option>
+                <option value="COMPLETADA">Completada</option>
+                <option value="CANCELADA">Cancelada</option>
+            </select>
+
+            <button class="btn-agregar"
+                    style="margin-top:15px; background:#6b8e23;"
+                    onclick="aplicarFiltros()">
+                Aplicar Filtros
+            </button>
+        </div>
+
+
+        <!-- LISTA -->
+        <div id="contenedor-reservas"></div>
+
+    </main>
+
+    <!-- MODAL -->
+    <div class="modal" id="modal-admin">
+        <div class="modal-content">
+            <label>Fecha</label>
+            <input id="adm-fecha" type="date">
+
+            <label>Hora</label>
+            <select id="adm-hora"></select>
+
+            <label>Personas</label>
+            <input id="adm-personas" type="number" min="1">
+
+            <label>Mesa</label>
+            <input id="adm-mesa" type="number" min="1">
+
+            <label>Observaciones</label>
+            <textarea id="adm-obs"></textarea>
+
+            <div class="modal-buttons">
+                <button class="modal-save" onclick="guardarCambiosAdmin()">Guardar</button>
+                <button class="modal-close" onclick="cerrarModalAdmin()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/admin-reservas.js"></script>
+</body>
+</html>

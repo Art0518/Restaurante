@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Verificación de Usuario Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body { padding: 20px; background: #f8f9fa; }
+    .debug-box { background: white; padding: 20px; border-radius: 8px; margin: 10px 0; }
+        .success { border-left: 4px solid #28a745; }
+  .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-primary">?? Debug - Verificación de Usuario Admin</h1>
+
+        <div class="debug-box">
+   <h3>Estado del LocalStorage</h3>
+       <div id="localStorage-content"></div>
+        </div>
+
+        <div class="debug-box">
+            <h3>Verificaciones</h3>
+       <div id="verification-results"></div>
+    </div>
+
+        <div class="debug-box">
+     <h3>Acciones de Prueba</h3>
+        <button class="btn btn-primary" onclick="testAdminAccess()">Probar Acceso Admin</button>
+     <button class="btn btn-warning" onclick="forceAdminAccess()">Forzar Acceso Admin (Solo Debug)</button>
+            <button class="btn btn-secondary" onclick="clearStorage()">Limpiar LocalStorage</button>
+     <button class="btn btn-success" onclick="location.reload()">Recargar</button>
+        </div>
+
+    <div class="debug-box">
+       <h3>Enlaces de Navegación</h3>
+ <a href="index.html" class="btn btn-outline-primary">Ir al Inicio</a>
+ <a href="admin-gestion-reservas.html" class="btn btn-outline-success">Ir a Gestión Admin</a>
+    </div>
+    </div>
+
+    <script>
+        function debugLocalStorage() {
+            const usuario = localStorage.getItem('usuario');
+       const container = document.getElementById('localStorage-content');
+ 
+            if (!usuario) {
+  container.innerHTML = `
+          <div class="alert alert-danger">
+     <strong>? No hay usuario en localStorage</strong>
+    <p>Debes iniciar sesión primero.</p>
+    </div>
+      `;
+      return null;
+            }
+
+            try {
+           const usuarioObj = JSON.parse(usuario);
+                container.innerHTML = `
+              <div class="alert alert-info">
+    <strong>? Usuario encontrado en localStorage</strong>
+      <pre style="margin-top: 10px;">${JSON.stringify(usuarioObj, null, 2)}</pre>
+         </div>
+       `;
+ return usuarioObj;
+          } catch (e) {
+         container.innerHTML = `
+    <div class="alert alert-danger">
+        <strong>? Error parseando usuario de localStorage</strong>
+ <p>Error: ${e.message}</p>
+         <p>Contenido raw: <code>${usuario}</code></p>
+          </div>
+     `;
+         return null;
+    }
+     }
+
+        function runVerifications() {
+            const usuario = debugLocalStorage();
+        const container = document.getElementById('verification-results');
+        
+            if (!usuario) {
+            container.innerHTML = `<div class="alert alert-warning">No se puede verificar sin usuario válido</div>`;
+        return;
+         }
+
+            let html = '';
+
+          // Verificación 1: Existencia de propiedades
+     const propiedades = ['IdUsuario', 'Nombre', 'Email', 'Rol'];
+  propiedades.forEach(prop => {
+          if (usuario.hasOwnProperty(prop)) {
+            html += `<div class="alert alert-success">? Propiedad '${prop}': ${usuario[prop]}</div>`;
+         } else {
+        html += `<div class="alert alert-danger">? Propiedad '${prop}': NO EXISTE</div>`;
+      }
+      });
+
+            // Verificación 2: Rol de administrador
+            const esAdmin = usuario.Rol === 'ADMIN';
+            if (esAdmin) {
+        html += `<div class="alert alert-success">? Es ADMINISTRADOR (Rol: ${usuario.Rol})</div>`;
+   } else {
+       html += `<div class="alert alert-danger">? NO es administrador (Rol: ${usuario.Rol})</div>`;
+   }
+
+         // Verificación 3: Estado del usuario
+if (usuario.Estado === 'ACTIVO') {
+        html += `<div class="alert alert-success">? Usuario ACTIVO</div>`;
+            } else {
+      html += `<div class="alert alert-warning">?? Usuario en estado: ${usuario.Estado}</div>`;
+  }
+
+     container.innerHTML = html;
+        }
+
+        function testAdminAccess() {
+            const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+         
+            if (!usuario) {
+   alert('? No hay usuario logueado');
+  return;
+   }
+
+            if (usuario.Rol !== 'ADMIN') {
+            alert(`? No es admin. Rol actual: ${usuario.Rol}`);
+    return;
+   }
+
+    alert('? ¡Verificación exitosa! Debería poder acceder a páginas de admin.');
+   
+      // Intentar ir a la página de admin
+      setTimeout(() => {
+         window.location.href = 'admin-gestion-reservas.html';
+          }, 1000);
+        }
+
+        function forceAdminAccess() {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
+        
+        if (!usuario) {
+alert('? No hay usuario. Primero debes iniciar sesión.');
+           return;
+        }
+        
+       if (usuario.Rol !== 'ADMIN') {
+            if (confirm(`? Usuario actual no es ADMIN (Rol: ${usuario.Rol}). ¿Quieres convertirlo temporalmente en ADMIN para pruebas?`)) {
+         usuario.Rol = 'ADMIN';
+localStorage.setItem('usuario', JSON.stringify(usuario));
+        alert('? Usuario convertido temporalmente a ADMIN. Recarga la página.');
+    location.reload();
+  }
+   return;
+        }
+        
+      alert('? Usuario ya es ADMIN. Intentando acceder...');
+        window.location.href = 'admin-gestion-reservas.html';
+        }
+
+        function clearStorage() {
+     if (confirm('¿Estás seguro de que quieres limpiar el localStorage?')) {
+   localStorage.clear();
+    alert('LocalStorage limpiado. Debes iniciar sesión nuevamente.');
+ location.reload();
+     }
+ }
+
+        // Ejecutar verificaciones al cargar la página
+   document.addEventListener('DOMContentLoaded', function() {
+  runVerifications();
+        });
+    </script>
+</body>
+</html>

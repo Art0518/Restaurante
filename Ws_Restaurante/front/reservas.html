@@ -1,0 +1,307 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserva - Un Rincón en San Juan</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- 🔥 ESTILO QUE SÍ FUNCIONA PARA TEXTO NEGRO -->
+    <style>
+        /* Caja blanca de fecha/hora */
+        .campo {
+            background: rgba(255, 255, 255, 0.97) !important;
+            border-radius: 16px;
+          padding: 20px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Texto NEGRO garantizado */
+        #step3 .campo label,
+        #step3 .campo input,
+   #step3 .campo select,
+        #step3 .campo option,
+        .campo label,
+        .campo input,
+        .campo select,
+        .campo option,
+        .campo * {
+            color: #000000 !important;
+   font-weight: 600;
+     -webkit-text-fill-color: #000000 !important; /* Safari FIX */
+        }
+
+  /* Campos internos */
+ #step3 .campo input,
+        #step3 .campo select,
+        .campo input,
+      .campo select {
+   background: #fff !important;
+            border: 2px solid #bbb !important;
+    border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 16px;
+    color: #000000 !important;
+        }
+
+        /* Placeholder NEGRO real */
+        #step3 .campo input::placeholder,
+        #step3 .campo select::placeholder,
+    .campo input::placeholder,
+        .campo select::placeholder {
+            color: #000000 !important;
+            opacity: 1 !important;
+        }
+
+        /* ICONO DEL DATE PICKER EN NEGRO */
+        #step3 input[type="date"]::-webkit-calendar-picker-indicator {
+   filter: invert(0) !important;
+}
+
+     /* Contenedor */
+        .contenedor-fecha-hora {
+            display: flex;
+        justify-content: center;
+            gap: 45px;
+     flex-wrap: wrap;
+  margin-top: 20px;
+    margin-bottom: 35px;
+        }
+
+        /* ✅ NUEVO: Contenedor con scroll para la lista de mesas */
+ #listaMesas {
+        max-height: 500px; /* Altura máxima del contenedor */
+      overflow-y: auto; /* Activar scroll vertical */
+            overflow-x: hidden; /* Desactivar scroll horizontal */
+            padding: 10px;
+  margin-top: 10px;
+     }
+
+        /* ✅ NUEVO: Personalizar la barra de scroll */
+        #listaMesas::-webkit-scrollbar {
+     width: 10px;
+        }
+
+        #listaMesas::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.2);
+         border-radius: 10px;
+        }
+
+  #listaMesas::-webkit-scrollbar-thumb {
+            background: rgba(107, 142, 35, 0.7);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        #listaMesas::-webkit-scrollbar-thumb:hover {
+       background: rgba(107, 142, 35, 1);
+    }
+
+  /* ✅ NUEVO: Color NEGRO para el texto debajo de las mesas */
+      #listaMesas h3,
+        #listaMesas p,
+        #listaMesas div,
+   #listaMesas b,
+        #listaMesas strong,
+        #listaMesas span {
+          color: #000000 !important;
+    }
+    </style>
+
+</head>
+
+<body>
+    <script>
+        // Verificar autenticación antes de permitir acceso a reservas
+        const usuario = JSON.parse(localStorage.getItem("usuario"));
+        if (!usuario) {
+            // Esperar a que el sistema de notificaciones esté cargado
+            document.addEventListener('DOMContentLoaded', function() {
+                // Dar un pequeño delay para asegurar que notifications.js esté cargado
+                setTimeout(function() {
+                    if (typeof showWarning === 'function') {
+                        showWarning("Debes iniciar sesión para realizar una reserva.", "Autenticación Requerida", function() {
+                            window.location.href = "index.html";
+                        });
+                    } else {
+                        // Fallback si el sistema no está disponible
+                        alert("Debes iniciar sesión para realizar una reserva.");
+                        window.location.href = "index.html";
+                    }
+                }, 100);
+            });
+        }
+    </script>
+
+    <div id="loading-container"></div>
+
+    <script>
+        fetch("components/loading.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("loading-container").innerHTML = html;
+                setTimeout(() => {
+                    const loader = document.querySelector(".loading-container");
+                    if (loader) {
+                        loader.style.opacity = "0";
+                        loader.style.transition = "opacity .5s ease";
+                        setTimeout(() => loader.style.display = "none", 500);
+                    }
+                }, 1000);
+            });
+    </script>
+
+    <!-- NAVBAR -->
+    <div id="navbar-container"></div>
+    <script>
+        fetch("components/navbar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("navbar-container").innerHTML = html;
+                const script = document.createElement("script");
+                script.src = "js/navbar.js";
+                document.body.appendChild(script);
+            });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+    <script>
+        fetch("components/auth-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("auth-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de autenticación:", error);
+            });
+    </script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+        fetch("components/notification-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("notification-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de notificaciones:", error);
+            });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+        fetch("components/confirmation-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("confirmation-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de confirmación:", error);
+            });
+    </script>
+
+    <div class="pagina-reserva">
+
+        <section id="reservaForm" class="reserva-form fondo-caribeno">
+
+            <!-- PASO 1 -->
+            <div id="step1" class="reserva-step fade-in">
+                <h2>Selecciona tu zona favorita</h2>
+                <div class="zona-opciones">
+                    <button onclick="selectZona('Interior')">Interior</button>
+                    <button onclick="selectZona('Exterior')">Exterior</button>
+                </div>
+            </div>
+
+            <!-- PASO 2 -->
+            <div id="step2" class="reserva-step fade-in" style="display:none;">
+                <h2>Selecciona tu mesa</h2>
+                <div id="listaMesas" class="lista-mesas"></div>
+                <button class="volver-btn" onclick="goBack(1)">← Volver</button>
+            </div>
+
+            <!-- PASO 3: FECHA Y HORA -->
+            <div id="step3" class="reserva-step fade-in" style="display:none;">
+                <h2 style="color:white; text-shadow:0 0 6px rgba(0,0,0,0.6);">Selecciona fecha y hora</h2>
+
+                <div class="contenedor-fecha-hora">
+
+                    <div class="campo">
+                        <label>Fecha</label>
+                        <input type="date" id="fechaSeleccion" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Hora</label>
+                        <select id="horaSeleccion" required disabled>
+                            <option value="">-- Selecciona una hora --</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <button class="btn-verde" onclick="confirmarFechaHora()">Continuar</button>
+                <button class="volver-btn" onclick="goBack(2)">← Volver</button>
+            </div>
+
+            <!-- PASO 4 -->
+            <div id="step4" class="reserva-step fade-in" style="display:none;">
+                <h2>Detalles de tu reserva</h2>
+                <form id="reservaFormReal" class="reserva-formulario">
+
+                    <label>
+                        Fecha:
+                        <input type="text" id="fecha" readonly>
+                    </label>
+
+                    <label>
+                        Hora:
+                        <input type="text" id="hora" readonly>
+                    </label>
+
+                    <label>
+                        Nombre completo:
+                        <input type="text" id="nombre" readonly>
+                    </label>
+
+                    <label>
+                        Correo electrónico:
+                        <input type="email" id="correo" readonly>
+                    </label>
+
+                    <label>
+                        Teléfono:
+                        <input type="tel" id="telefono" readonly>
+                    </label>
+
+                    <label>
+                        Comentarios:
+                        <textarea id="comentarios" placeholder="Ej. Celebración, mesa especial, etc."></textarea>
+                    </label>
+
+                    <button type="button" class="btn-verde" onclick="submitReserva()">Reservar</button>
+                </form>
+
+                <button class="volver-btn" onclick="goBack(3)">← Cambiar fecha y hora</button>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/reservas.js"></script>
+    <script src="js/auth.js"></script>
+
+</body>
+</html>

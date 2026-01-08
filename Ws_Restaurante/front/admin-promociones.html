@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Rinc�n en San Juan - Promociones</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+padding-top: 80px; /* Reducir inicialmente */
+    background-color: #fffaf2;
+   }
+
+     .contenedor {
+  max-width: 1100px;
+        margin: 30px auto;
+    padding: 20px;
+        }
+
+        .header-seccion {
+display: flex;
+          justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-seccion h1 {
+ color: #3e2f21;
+   font-size: 2.2em;
+            margin: 0;
+            font-weight: 600;
+        }
+
+   .btn-agregar {
+     background: #6b8e23;
+            color: white;
+     padding: 12px 24px;
+            border-radius: 10px;
+   border: none;
+            font-weight: 600;
+      font-size: 1em;
+ cursor: pointer;
+            transition: all 0.3s ease;
+        box-shadow: 0 3px 10px rgba(107, 142, 35, 0.3);
+        }
+
+        .btn-agregar:hover {
+ background: #557a1b;
+     transform: translateY(-2px);
+   box-shadow: 0 5px 15px rgba(107, 142, 35, 0.4);
+        }
+
+   .tabla-promociones {
+          width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+   box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  }
+
+        .tabla-promociones table {
+        width: 100%;
+ border-collapse: collapse;
+        }
+
+        .tabla-promociones thead {
+         background: linear-gradient(to right, #3e2f21, #6b8e23);
+ color: white;
+        }
+
+ .tabla-promociones th,
+        .tabla-promociones td {
+        padding: 14px;
+    text-align: left;
+     border-bottom: 1px solid #f0f0f0;
+  }
+
+        .tabla-promociones th {
+  font-weight: 600;
+          font-size: 0.95em;
+      text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    .tabla-promociones tbody tr {
+            transition: background 0.2s ease;
+   }
+
+        .tabla-promociones tbody tr:hover {
+   background: #fffaf2;
+        }
+
+   .estado-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+   font-weight: 600;
+}
+
+ .estado-activa {
+            background: #d4edda;
+            color: #155724;
+        }
+
+.estado-inactiva {
+      background: #f8d7da;
+            color: #721c24;
+        }
+
+        .estado-programada {
+ background: #fff3cd;
+     color: #856404;
+        }
+
+        .acciones {
+     display: flex;
+    gap: 8px;
+        }
+
+        .btn-editar,
+  .btn-eliminar {
+        padding: 6px 12px;
+    border: none;
+            border-radius: 6px;
+  cursor: pointer;
+    font-size: 0.9em;
+  font-weight: 600;
+    transition: all 0.2s ease;
+     }
+
+      .btn-editar {
+   background: #007bff;
+         color: white;
+        }
+
+        .btn-editar:hover {
+            background: #0056b3;
+          transform: scale(1.05);
+    }
+
+        .btn-eliminar {
+          background: #dc3545;
+  color: white;
+        }
+
+        .btn-eliminar:hover {
+            background: #c82333;
+            transform: scale(1.05);
+     }
+
+        .modal {
+      position: fixed;
+ top: 0;
+    left: 0;
+            width: 100%;
+    height: 100%;
+       background: rgba(0,0,0,0.6);
+  display: none;
+            justify-content: center;
+ align-items: center;
+   z-index: 9999;
+    overflow-y: auto;
+ }
+
+        .modal-content {
+      width: 500px;
+            max-width: 90%;
+     background: #fff;
+            padding: 30px;
+border-radius: 20px;
+     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin: 20px;
+        }
+
+        .modal-header {
+     display: flex;
+            justify-content: space-between;
+  align-items: center;
+      margin-bottom: 25px;
+   padding-bottom: 15px;
+        border-bottom: 2px solid #6b8e23;
+        }
+
+    .modal-header h2 {
+       margin: 0;
+            color: #3e2f21;
+            font-size: 1.8em;
+         font-weight: 600;
+        }
+
+  .btn-cerrar {
+    background: none;
+            border: none;
+       font-size: 28px;
+  color: #999;
+            cursor: pointer;
+  line-height: 1;
+         transition: color 0.2s ease;
+        }
+
+        .btn-cerrar:hover {
+      color: #333;
+        }
+
+        .campo {
+            margin-bottom: 18px;
+}
+
+        .campo label {
+    display: block;
+            margin-bottom: 6px;
+    font-weight: 600;
+ color: #3e2f21;
+         font-size: 0.95em;
+        }
+
+    .campo input,
+        .campo select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+ border-radius: 8px;
+        font-size: 1em;
+       transition: border-color 0.3s ease;
+         box-sizing: border-box;
+        }
+
+.campo input:focus,
+        .campo select:focus {
+    outline: none;
+            border-color: #6b8e23;
+          box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
+        }
+
+        .botones-modal {
+       display: flex;
+   gap: 12px;
+      margin-top: 25px;
+        }
+
+        .btn-guardar,
+    .btn-cancelar {
+            flex: 1;
+      padding: 12px;
+   border: none;
+            border-radius: 8px;
+            font-weight: 600;
+    font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+      }
+
+        .btn-guardar {
+            background: #6b8e23;
+            color: white;
+        }
+
+        .btn-guardar:hover {
+        background: #557a1b;
+transform: translateY(-2px);
+   box-shadow: 0 4px 12px rgba(107, 142, 35, 0.3);
+        }
+
+        .btn-cancelar {
+            background: #6c757d;
+            color: white;
+        }
+
+     .btn-cancelar:hover {
+       background: #5a6268;
+        }
+
+        .mensaje-vacio {
+            text-align: center;
+     padding: 40px;
+    color: #666;
+         font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+ .tabla-promociones {
+     overflow-x: auto;
+   }
+
+       .acciones {
+      flex-direction: column;
+}
+
+    .modal-content {
+      width: 95%;
+    padding: 20px;
+ }
+
+/* Ajustar padding-top para móviles */
+body {
+       padding-top: 200px !important;
+        }
+        }
+
+     @media screen and (max-width: 1200px) {
+      body {
+          padding-top: 140px !important;
+      }
+        }
+
+        @media screen and (max-width: 1400px) {
+   body {
+     padding-top: 120px !important;
+    }
+        }
+
+     @media screen and (max-width: 1600px) {
+            body {
+          padding-top: 100px !important;
+          }
+  }
+    </style>
+</head>
+<body>
+
+    <div id="navbar-container"></div>
+
+    <script>
+        fetch("components/navbar.html")
+        .then(res => res.text())
+ .then(html => {
+     document.getElementById("navbar-container").innerHTML = html;
+const script = document.createElement("script");
+       script.src = "js/navbar.js";
+            document.body.appendChild(script);
+      });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+    <script>
+  fetch("components/auth-modal.html")
+      .then(res => res.text())
+ .then(html => {
+      document.getElementById("auth-modal-container").innerHTML = html;
+  })
+         .catch(error => {
+      console.error("Error cargando el modal de autenticación:", error);
+   });
+ </script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+  fetch("components/notification-modal.html")
+       .then(res => res.text())
+     .then(html => {
+       document.getElementById("notification-modal-container").innerHTML = html;
+   })
+     .catch(error => {
+      console.error("Error cargando el modal de notificaciones:", error);
+   });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+  fetch("components/confirmation-modal.html")
+  .then(res => res.text())
+  .then(html => {
+   document.getElementById("confirmation-modal-container").innerHTML = html;
+     })
+ .catch(error => {
+       console.error("Error cargando el modal de confirmación:", error);
+ });
+    </script>
+
+    <div class="contenedor">
+    <div class="header-seccion">
+            <h1>Gestion de Promociones</h1>
+     <button class="btn-agregar" onclick="abrirModal()">Nueva Promocion</button>
+        </div>
+
+        <div class="tabla-promociones">
+          <table>
+     <thead>
+        <tr>
+         <th>ID</th>
+      <th>Descuento (%)</th>
+         <th>Fecha Inicio</th>
+<th>Fecha Fin</th>
+          <th>Estado</th>
+    <th>Acciones</th>
+    </tr>
+     </thead>
+       <tbody id="lista-promociones">
+      </tbody>
+      </table>
+        </div>
+    </div>
+
+    <div id="modal-promocion" class="modal">
+        <div class="modal-content">
+   <div class="modal-header">
+  <h2 id="titulo-modal">Nueva Promocion</h2>
+      <button class="btn-cerrar" onclick="cerrarModal()">&times;</button>
+        </div>
+
+        <form id="form-promocion">
+        <input type="hidden" id="id-promocion" value="0">
+
+      <div class="campo">
+            <label for="descuento">Descuento (%) *</label>
+      <input type="number" id="descuento" placeholder="Ej: 50" min="0.01" max="100" step="0.01" required>
+    </div>
+
+        <div class="campo">
+ <label for="fecha-inicio">Fecha de Inicio *</label>
+ <input type="date" id="fecha-inicio" required>
+        </div>
+
+        <div class="campo">
+            <label for="fecha-fin">Fecha de Fin *</label>
+    <input type="date" id="fecha-fin" required>
+        </div>
+
+    <div class="campo">
+            <label for="estado">Estado *</label>
+        <select id="estado" required>
+    <option value="Activa">Activa</option>
+         <option value="Inactiva">Inactiva</option>
+           <option value="Programada">Programada</option>
+      </select>
+   </div>
+
+      <div class="botones-modal">
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+        </div>
+        </form>
+        </div>
+    </div>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/admin-promociones.js"></script>
+
+</body>
+</html>

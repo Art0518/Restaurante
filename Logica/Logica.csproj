@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{80DAD5E4-1F03-4CD7-AB69-F957CD3C1825}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Logica</RootNamespace>
+    <AssemblyName>Logica</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="servicios\DetalleFacturaLogica.cs" />
+    <Compile Include="servicios\FacturaLogica.cs" />
+    <Compile Include="servicios\LogTransaccionLogica.cs" />
+    <Compile Include="servicios\MesaLogica.cs" />
+    <Compile Include="servicios\PagoLogica.cs" />
+    <Compile Include="servicios\PlatoLogica.cs" />
+    <Compile Include="servicios\PromocionLogica.cs" />
+    <Compile Include="servicios\ReservaLogica.cs" />
+    <Compile Include="servicios\RestauranteLogica.cs" />
+    <Compile Include="servicios\UsuarioLogica.cs" />
+    <Compile Include="validaciones\ValidacionDetalleFactura.cs" />
+    <Compile Include="validaciones\ValidacionFactura.cs" />
+    <Compile Include="validaciones\ValidacionMesa.cs" />
+    <Compile Include="validaciones\ValidacionPago.cs" />
+    <Compile Include="validaciones\ValidacionPlato.cs" />
+    <Compile Include="validaciones\ValidacionPromocion.cs" />
+    <Compile Include="validaciones\ValidacionReserva.cs" />
+    <Compile Include="validaciones\ValidacionRestaurante.cs" />
+    <Compile Include="validaciones\ValidacionUsuario.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AccesoDatos\AccesoDatos.csproj">
+      <Project>{85555ba1-1d48-4b20-996b-00504900b6e2}</Project>
+      <Name>AccesoDatos</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GDatos\GDatos.csproj">
+      <Project>{ec5ab01b-03bc-4f56-afd9-dd8dad4fe58e}</Project>
+      <Name>GDatos</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NewFolder1\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

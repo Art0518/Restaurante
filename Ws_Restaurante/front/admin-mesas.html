@@ -1,0 +1,351 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Un Rincón en San Juan - Mesas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            padding-top: 90px;
+        }
+
+        .contenedor {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 10px;
+        }
+
+        .tarjeta {
+            background: #fffaf2;
+            border: 1px solid #e6d5b8;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        .btn-agregar {
+            background: #6b8e23;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-agregar:hover {
+            background: #5a7a1e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn-editar {
+            background: #007bff;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-editar:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        .btn-eliminar {
+            background: #d9534f;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-eliminar:hover {
+            background: #c9302c;
+            transform: translateY(-2px);
+        }
+
+        .foto-area img {
+            width: 190px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,.55);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            width: 420px;
+            background: #fff7e8;
+            padding: 28px;
+            border-radius: 22px;
+            border: 1px solid #e2c9a7;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+        }
+
+        .campo {
+            margin-bottom: 16px;
+        }
+
+            .campo label {
+                font-weight: 600;
+                color: #6b4f28;
+                display: block;
+                margin-bottom: 5px;
+            }
+
+            .campo input,
+            .campo select {
+                width: 100%;
+                padding: 12px;
+                border-radius: 12px;
+                border: 1px solid #c9b18a;
+                background: #fffdf7;
+            }
+
+            .campo small {
+                display: block;
+                margin-top: 4px;
+                color: #8b7355;
+                font-size: 0.85em;
+                font-style: italic;
+            }
+
+            .campo input:invalid {
+                border-color: #d9534f;
+            }
+
+            .campo input:valid {
+                border-color: #6b8e23;
+            }
+
+        #preview-mesa {
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-save {
+            background: #6b8e23;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save:hover:not(:disabled) {
+            background: #5a7a1e;
+            transform: translateY(-2px);
+        }
+
+        .btn-save:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-close {
+            background: #d9534f;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-close:hover {
+            background: #c9302c;
+            transform: translateY(-2px);
+        }
+
+        .btn-activar {
+            background: #6b8e23; /* Verde */
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-activar:hover {
+            background: #5a7a1e;
+            transform: translateY(-2px);
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+
+    <script>
+        fetch("components/navbar.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("navbar-container").innerHTML = html;
+                const s = document.createElement("script");
+                s.src = "js/navbar.js";
+                document.body.appendChild(s);
+            });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+<script>
+        fetch("components/auth-modal.html")
+  .then(res => res.text())
+   .then(html => {
+    document.getElementById("auth-modal-container").innerHTML = html;
+            })
+     .catch(error => {
+     console.error("Error cargando el modal de autenticación:", error);
+      });
+</script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+        fetch("components/notification-modal.html")
+            .then(res => res.text())
+        .then(html => {
+document.getElementById("notification-modal-container").innerHTML = html;
+   })
+     .catch(error => {
+   console.error("Error cargando el modal de notificaciones:", error);
+   });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+ fetch("components/confirmation-modal.html")
+  .then(res => res.text())
+.then(html => {
+  document.getElementById("confirmation-modal-container").innerHTML = html;
+      })
+  .catch(error => {
+   console.error("Error cargando el modal de confirmación:", error);
+   });
+    </script>
+
+    <main class="contenedor">
+
+        <button class="btn-agregar" onclick="abrirModal()">➕ Agregar Mesa</button>
+
+        <div class="tarjeta">
+            <h2>Filtros</h2>
+            <input id="filtro-id" type="number" placeholder="ID Mesa" />
+            <select id="filtro-estado">
+                <option value="">Estado</option>
+                <option value="Disponible">Disponible</option>
+                <option value="Ocupada">Ocupada</option>
+                <option value="Inactiva">Inactiva</option>
+            </select>
+            <button class="btn-agregar" onclick="aplicarFiltros()">Aplicar Filtros</button>
+        </div>
+
+        <div id="lista-mesas"></div>
+
+    </main>
+
+    <!-- MODAL -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <h2 id="titulo-modal">Nueva Mesa</h2>
+
+            <div class="campo">
+                <label>Número de Mesa (debe ser único)</label>
+                <input id="m-numero" type="number" placeholder="Ingrese número único de mesa" min="1" step="1" required />
+                <small>⚠️ No puede haber dos mesas con el mismo número</small>
+            </div>
+
+            <div class="campo">
+                <label>Tipo de Mesa</label>
+                <select id="m-tipo" required>
+                    <option value="Interior">Interior</option>
+                    <option value="Exterior">Exterior</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Capacidad (solo entre 2 y 6 personas)</label>
+                <input id="m-capacidad" type="number" placeholder="Entre 2 y 6 personas" min="2" max="6" step="1" required />
+                <small>✓ Solo se permiten mesas de 2 a 6 personas</small>
+            </div>
+
+            <div class="campo">
+                <label>Precio por Reserva (debe ser mayor a $0)</label>
+                <input id="m-precio" type="number" step="0.01" placeholder="Ej: 25.00" min="0.01" required />
+                <small>💵 Ingrese un precio válido mayor a cero</small>
+            </div>
+
+            <div class="campo" id="campo-imagen">
+                <label>Imagen</label>
+                <input id="m-imagen-file" type="file" accept="image/*" onchange="previewMesa(event)">
+                <img id="preview-mesa">
+            </div>
+
+            <div class="campo">
+                <label>Estado</label>
+                <select id="m-estado">
+                    <option value="Disponible">Disponible</option>
+                    <option value="Ocupada">Ocupada</option>
+                    <option value="Inactiva">Inactiva</option>
+                </select>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-save" onclick="guardarMesa()">Guardar</button>
+                <button class="btn-close" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+  <script src="js/admin-mesas.js"></script>
+
+</body>
+</html>

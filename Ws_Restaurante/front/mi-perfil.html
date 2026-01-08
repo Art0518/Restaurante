@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Un Rincón en San Juan</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="loading-container"></div>
+
+    <script>
+        fetch("components/loading.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("loading-container").innerHTML = html;
+
+                setTimeout(() => {
+                    const loader = document.querySelector(".loading-container");
+
+                    if (loader) {
+                        loader.style.opacity = "0";
+                        loader.style.transition = "opacity .5s ease";
+
+                        setTimeout(() => {
+                            loader.style.display = "none";
+                        }, 500);
+                    }
+                }, 3000);
+            });
+    </script>
+
+    <!-- Scripts del login y del navbar -->
+    <div id="navbar-container"></div>
+
+    <script>
+        fetch("components/navbar.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("navbar-container").innerHTML = html;
+
+                // Cargar navbar.js después de insertar el navbar en el DOM
+                const script = document.createElement("script");
+                script.src = "js/navbar.js";
+                document.body.appendChild(script);
+            });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+    <script>
+        fetch("components/auth-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("auth-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de autenticación:", error);
+            });
+    </script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+        fetch("components/notification-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("notification-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de notificaciones:", error);
+            });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+        fetch("components/confirmation-modal.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("confirmation-modal-container").innerHTML = html;
+            })
+            .catch(error => {
+                console.error("Error cargando el modal de confirmación:", error);
+            });
+    </script>
+
+    <div class="section fade-in">
+        <h2>Mi Perfil</h2>
+
+        <!-- 🔥 ÁREA DE NOTIFICACIONES -->
+        <div id="notificacionesPerfil" style="display: none; max-width: 600px; margin: 0 auto 20px auto;">
+            <div id="mensajeError" class="mensaje-error" style="display: none;"></div>
+            <div id="mensajeExito" class="mensaje-exito" style="display: none;"></div>
+        </div>
+
+        <div id="perfilContainer" class="reserva-formulario" style="background: transparent;">
+
+            <label>Nombre Completo</label>
+            <input id="Nombre" name="Nombre" placeholder="Ej: Juan Pérez">
+            <small>Debe incluir nombre y apellido</small>
+            <div id="NombreValidation" class="validation-message"></div>
+
+            <label>Cédula</label>
+            <input id="Cedula" name="Cedula" placeholder="001-1234567-8" maxlength="13">
+            <small>Formato: XXX-XXXXXXX-X</small>
+            <div id="CedulaValidation" class="validation-message"></div>
+
+            <label>Email</label>
+            <input id="Email" name="Email" type="email" placeholder="ejemplo@correo.com">
+            <div id="EmailValidation" class="validation-message"></div>
+
+            <label>Teléfono</label>
+            <input id="Telefono" name="Telefono" placeholder="809-555-1234" maxlength="12">
+            <small>Formato: 809/829/849 + 7 dígitos</small>
+            <div id="TelefonoValidation" class="validation-message"></div>
+
+            <label>Dirección</label>
+            <input id="Direccion" name="Direccion" placeholder="Calle, sector, número">
+            <small>Dirección completa con números y letras</small>
+            <div id="DireccionValidation" class="validation-message"></div>
+
+            <label>Contraseña (si deseas cambiarla)</label>
+            <input id="Contrasena" name="Contrasena" type="password" placeholder="Mínimo 8 caracteres, mayúscula, minúscula y número">
+            <small>Deja en blanco si no quieres cambiarla</small>
+            <div id="ContrasenaValidation" class="validation-message"></div>
+
+            <button class="btn-verde" onclick="actualizarPerfil()" id="btnActualizar">
+                Guardar cambios
+            </button>
+
+        </div>
+
+
+        <div id="loginRequired" style="display:none; text-align:center;">
+            <h2>Debes iniciar sesión para ver tu perfil.</h2>
+            <a href="index.html"><button class="btn-verde">Volver al inicio</button></a>
+        </div>
+    </div>
+
+    <div id="footer-container"></div>
+    <script>
+        fetch("components/footer.html")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("footer-container").innerHTML = html;
+            });
+    </script>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/perfil.js"></script>
+    <script src="js/auth.js"></script>
+
+
+</body>
+</html>

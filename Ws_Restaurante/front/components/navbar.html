@@ -1,0 +1,277 @@
+﻿<!-- Navbar mejorado con estilos internos para evitar superposiciones -->
+<style>
+/* === HEADER Y NAVBAR MEJORADOS === */
+.modern-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #3e2f21 0%, #6b8e23 100%);
+    color: white;
+  z-index: 1000;
+    padding: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.modern-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+ min-height: 60px;
+}
+
+/* Logo mejorado */
+.modern-logo {
+  height: 45px;
+  border-radius: 8px;
+    transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.modern-logo:hover {
+    transform: scale(1.05);
+}
+
+/* Contenedor de enlaces */
+.modern-nav-links {
+    display: flex;
+    align-items: center;
+gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+flex: 1;
+    margin: 0 20px;
+}
+
+/* Enlaces principales */
+.modern-nav-link {
+    color: #f5d7a5;
+  font-weight: 600;
+ font-size: 14px;
+ text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+transition: all 0.3s ease;
+  white-space: nowrap;
+    position: relative;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(5px);
+}
+
+.modern-nav-link:hover {
+    color: #ffffff;
+ background: rgba(107, 142, 35, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(107, 142, 35, 0.3);
+}
+
+/* Separadores modernos */
+.modern-separator {
+    color: #f5d7a5;
+opacity: 0.6;
+  font-size: 12px;
+ margin: 0 2px;
+}
+
+/* Area de usuario */
+.modern-user-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Botón de login moderno */
+.modern-login-btn {
+    background: linear-gradient(135deg, #6b8e23, #8dbb35);
+    color: white;
+    border: none;
+padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+  font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 10px rgba(107, 142, 35, 0.3);
+}
+
+.modern-login-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 15px rgba(107, 142, 35, 0.4);
+}
+
+/* Nombre de usuario */
+.modern-user-name {
+    color: #f5d7a5;
+    font-weight: 600;
+  font-size: 14px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+/* Admin badge */
+.modern-admin-badge {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+ padding: 4px 8px;
+    border-radius: 12px;
+ text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+/* Enlaces específicos para cliente y admin */
+.cliente-links, .admin-links {
+  display: none;
+    align-items: center;
+    gap: 8px;
+}
+
+.cliente-links.show, .admin-links.show {
+    display: flex;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .modern-nav-link {
+    font-size: 13px;
+        padding: 6px 10px;
+    }
+  
+    .modern-navbar {
+        padding: 10px 15px;
+  }
+}
+
+@media (max-width: 992px) {
+    .modern-navbar {
+        flex-direction: column;
+    padding: 15px;
+      gap: 15px;
+    }
+    
+    .modern-nav-links {
+ margin: 0;
+        justify-content: center;
+  gap: 5px;
+    }
+    
+    .modern-separator {
+        display: none;
+    }
+    
+    .modern-nav-link {
+      font-size: 12px;
+    padding: 6px 8px;
+    }
+}
+
+@media (max-width: 768px) {
+    .modern-nav-links {
+ flex-direction: column;
+        gap: 8px;
+}
+    
+    .modern-nav-link {
+     width: 100%;
+        text-align: center;
+        max-width: 200px;
+    }
+}
+
+/* Animaciones suaves */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+transform: translateY(0);
+    }
+}
+
+.modern-header {
+    animation: slideDown 0.5s ease-out;
+}
+
+/* Espaciado para el contenido principal */
+body {
+    padding-top: 80px !important;
+}
+
+@media (max-width: 992px) {
+    body {
+   padding-top: 120px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+   padding-top: 160px !important;
+    }
+}
+</style>
+
+<header class="modern-header">
+    <nav class="modern-navbar">
+        
+        <!-- LOGO -->
+        <a href="index.html">
+  <img src="img/logo-rincon.png" alt="Un Rincón en San Juan" class="modern-logo" />
+    </a>
+
+ <!-- ENLACES PRINCIPALES -->
+    <div class="modern-nav-links">
+    <!-- INICIO - SIEMPRE VISIBLE -->
+    <a href="index.html" class="modern-nav-link">Inicio</a>
+    
+  <!-- ENLACES PARA CLIENTES (Solo si NO es admin) -->
+    <span id="cliente-links" class="cliente-links">
+        <span class="modern-separator">•</span>
+      <a href="reservas.html" class="modern-nav-link">Reservas</a>
+        <span class="modern-separator">•</span>
+  <a href="menu.html" class="modern-nav-link">Menú</a>
+<span class="modern-separator">•</span>
+        <a href="clientes-mesas.html" class="modern-nav-link">Mesas</a>
+        
+        <!-- CARRITO (Solo para usuarios logueados NO admin) -->
+        <span id="carrito-area" class="user-area">
+      <span class="modern-separator">•</span>
+      <a href="carrito.html" class="modern-nav-link">
+          <i class="bi bi-cart3"></i> Carrito
+      </a>
+ </span>
+    </span>
+
+     <!-- ENLACES PARA ADMIN (Solo si es admin) -->
+     <span id="admin-links" class="admin-links">
+        <span class="modern-separator">•</span>
+        <a href="admin-gestion-reservas.html" class="modern-nav-link">Gestión y Facturación</a>
+        <span class="modern-separator">•</span>
+      <a href="admin-mesas.html" class="modern-nav-link">Mesas (Admin)</a>
+<span class="modern-separator">•</span>
+   <a href="admin-menu.html" class="modern-nav-link">Menú (Admin)</a>
+  <span class="modern-separator">•</span>
+      <a href="admin-clientes.html" class="modern-nav-link">Clientes (Admin)</a>
+        <span class="modern-separator">•</span>
+      <a href="admin-promociones.html" class="modern-nav-link">Promociones (Admin)</a>
+    </span>
+  </div>
+
+        <!-- AREA DE USUARIO -->
+<div class="modern-user-area">
+    <span id="nav-user-area"></span>
+        </div>
+
+    </nav>
+</header>

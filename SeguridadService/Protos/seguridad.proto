@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+option csharp_namespace = "SeguridadService.Protos";
+
+package seguridad;
+
+service SeguridadGrpc {
+  rpc RegistrarUsuario (RegistrarUsuarioRequest) returns (RegistrarUsuarioResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+  rpc ObtenerUsuario (ObtenerUsuarioRequest) returns (ObtenerUsuarioResponse);
+  rpc ActualizarUsuario (ActualizarUsuarioRequest) returns (ActualizarUsuarioResponse);
+  rpc CambiarContrasena (CambiarContrasenaRequest) returns (CambiarContrasenaResponse);
+  rpc ValidarToken (ValidarTokenRequest) returns (ValidarTokenResponse);
+  rpc EliminarUsuario (EliminarUsuarioRequest) returns (EliminarUsuarioResponse);
+  rpc ListarUsuarios (ListarUsuariosRequest) returns (ListarUsuariosResponse);
+}
+
+// Mensajes para RegistrarUsuario
+message RegistrarUsuarioRequest {
+  string nombre = 1;
+  string apellido = 2;
+  string email = 3;
+  string telefono = 4;
+  string contrasena = 5;
+  string rol = 6;
+  string cedula = 7;
+  string direccion = 8;
+}
+
+message RegistrarUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+  int32 idUsuario = 3;
+  Usuario usuario = 4;
+  string token = 5;
+}
+
+// Mensajes para Login
+message LoginRequest {
+  string email = 1;
+  string contrasena = 2;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Usuario usuario = 3;
+  string token = 4;
+  int32 codigoError = 5;
+}
+
+// Mensajes para ObtenerUsuario
+message ObtenerUsuarioRequest {
+  int32 idUsuario = 1;
+}
+
+message ObtenerUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Usuario usuario = 3;
+}
+
+// Mensajes para ActualizarUsuario
+message ActualizarUsuarioRequest {
+  int32 idUsuario = 1;
+  string nombre = 2;
+  string apellido = 3;
+  string email = 4;
+  string telefono = 5;
+  string rol = 6;
+  string cedula = 7;
+  string direccion = 8;
+}
+
+message ActualizarUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para CambiarContrasena
+message CambiarContrasenaRequest {
+  int32 idUsuario = 1;
+  string contrasenaActual = 2;
+  string nuevaContrasena = 3;
+}
+
+message CambiarContrasenaResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para ValidarToken
+message ValidarTokenRequest {
+  string token = 1;
+}
+
+message ValidarTokenResponse {
+  bool valido = 1;
+  int32 idUsuario = 2;
+  string email = 3;
+  string rol = 4;
+  string mensaje = 5;
+}
+
+// Mensajes para EliminarUsuario
+message EliminarUsuarioRequest {
+  int32 idUsuario = 1;
+}
+
+message EliminarUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para ListarUsuarios
+message ListarUsuariosRequest {
+  string rol = 1;
+}
+
+message ListarUsuariosResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Usuario usuarios = 3;
+}
+
+// Modelo
+message Usuario {
+  int32 idUsuario = 1;
+  string nombre = 2;
+  string apellido = 3;
+  string email = 4;
+  string telefono = 5;
+  string rol = 6;
+  bool activo = 7;
+  string fechaCreacion = 8;
+  string ultimaConexion = 9;
+  string cedula = 10;
+  string direccion = 11;
+}

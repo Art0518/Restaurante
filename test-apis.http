@@ -1,0 +1,121 @@
+###############################################################################
+# TEST APIS - Microservicios CafeSanJuan
+# 
+# Servicios disponibles:
+# - SeguridadService (http://localhost:5001)
+# - MenuService (http://localhost:5002)
+# - ReservasService (http://localhost:5003)
+# - FacturacionService (http://localhost:5004)
+###############################################################################
+
+### Variables de entorno
+@baseUrlSeguridad = http://localhost:5001
+@baseUrlMenu = http://localhost:5002
+@baseUrlReservas = http://localhost:5003
+@baseUrlFacturacion = http://localhost:5004
+
+
+###############################################################################
+# SEGURIDAD SERVICE
+###############################################################################
+
+### Verificar servicio
+GET {{baseUrlSeguridad}}/api/usuarios
+Content-Type: application/json
+
+### Registrar usuario
+POST {{baseUrlSeguridad}}/api/usuarios/registrar
+Content-Type: application/json
+
+{
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "email": "juan.perez@cafe.com",
+  "contrasena": "Pass123!",
+  "telefono": "809-765-4321",
+  "cedula": "001-2345678-9",
+  "direccion": "Calle Principal #123",
+  "rol": "CLIENTE"
+}
+
+### Login
+POST {{baseUrlSeguridad}}/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@cafe.com",
+  "contrasena": "Pass123!"
+}
+
+
+###############################################################################
+# MENU SERVICE
+###############################################################################
+
+### Listar platos
+GET {{baseUrlMenu}}/api/platos/listar
+
+### Listar promociones activas
+GET {{baseUrlMenu}}/api/promociones/activas
+
+
+###############################################################################
+# RESERVAS SERVICE
+###############################################################################
+
+### Obtener restaurantes
+GET {{baseUrlReservas}}/api/reservas/restaurantes
+
+### Obtener mesas
+GET {{baseUrlReservas}}/api/reservas/mesas/2
+
+### Crear reserva
+POST {{baseUrlReservas}}/api/reservas/crear
+Content-Type: application/json
+
+{
+  "idUsuario": 10028,
+  "idMesa": 20,
+  "idRestaurante": 2,
+  "fechaReserva": "2025-12-25",
+  "horaReserva": "12:30",
+  "numeroPersonas": 5,
+  "notas": "Mesa cerca de la ventana"
+}
+
+
+###############################################################################
+# FACTURACION SERVICE
+###############################################################################
+
+### Listar facturas
+GET {{baseUrlFacturacion}}/api/facturacion/listar
+
+### Generar factura desde carrito
+POST {{baseUrlFacturacion}}/api/facturacion/generar-carrito
+Content-Type: application/json
+
+{
+  "idUsuario": 10028,
+  "reservasIds": "10027,10028",
+  "promocionId": null,
+  "metodoPago": ""
+}
+
+### Obtener factura detallada
+GET {{baseUrlFacturacion}}/api/facturacion/1/detallada
+
+### Marcar factura como pagada
+POST {{baseUrlFacturacion}}/api/facturacion/marcar-pagada
+Content-Type: application/json
+
+{
+  "idFactura": 1,
+  "metodoPago": "Tarjeta de Crédito"
+}
+
+### Listar facturas de usuario
+GET {{baseUrlFacturacion}}/api/facturacion/usuario/10028
+
+### Listar detalles de factura
+GET {{baseUrlFacturacion}}/api/detallefactura/factura/1

@@ -1,0 +1,69 @@
+<!-- 
+    INSTRUCCIONES PARA AGREGAR EL SISTEMA DE NOTIFICACIONES A ARCHIVOS HTML
+    
+    Este archivo contiene el código que debe agregarse a cada archivo HTML
+    para integrar el sistema de notificaciones modales.
+-->
+
+<!-- ==================================================================== -->
+<!-- PASO 1: Agregar después del navbar-container (antes del contenido principal) -->
+<!-- ==================================================================== -->
+
+<!-- AUTH MODAL -->
+<div id="auth-modal-container"></div>
+<script>
+    fetch("components/auth-modal.html")
+     .then(res => res.text())
+        .then(html => {
+       document.getElementById("auth-modal-container").innerHTML = html;
+   })
+        .catch(error => {
+            console.error("Error cargando el modal de autenticación:", error);
+ });
+</script>
+
+<!-- NOTIFICATION MODAL -->
+<div id="notification-modal-container"></div>
+<script>
+    fetch("components/notification-modal.html")
+        .then(res => res.text())
+ .then(html => {
+      document.getElementById("notification-modal-container").innerHTML = html;
+     })
+        .catch(error => {
+   console.error("Error cargando el modal de notificaciones:", error);
+        });
+</script>
+
+<!-- ==================================================================== -->
+<!-- PASO 2: Agregar ANTES de cerrar </body> (ANTES de otros scripts) -->
+<!-- ==================================================================== -->
+
+<script src="js/notifications.js"></script>
+
+<!-- ==================================================================== -->
+<!-- NOTA: El archivo notifications.js debe cargarse ANTES que otros scripts
+     que puedan usar alert() o showNotification() -->
+<!-- ==================================================================== -->
+
+<!-- ==================================================================== -->
+<!-- ARCHIVOS QUE NECESITAN ACTUALIZARSE: -->
+<!-- ==================================================================== -->
+<!-- 
+? index.html - ACTUALIZADO
+? carrito.html - ACTUALIZADO
+? reservas.html - ACTUALIZADO
+? menu.html - ACTUALIZADO
+? mi-perfil.html - ACTUALIZADO
+? mis-reservas.html - ACTUALIZADO
+? admin-clientes.html - ACTUALIZADO
+? admin-reservas.html - ACTUALIZADO
+? admin-mesas.html - ACTUALIZADO
+
+? admin-menu.html - PENDIENTE
+? admin-promociones.html - PENDIENTE
+? admin-gestion-reservas.html - PENDIENTE
+? confirmacion.html - PENDIENTE (opcional)
+? clientes-mesas.html - PENDIENTE (opcional)
+? debug-admin.html - PENDIENTE (opcional)
+-->

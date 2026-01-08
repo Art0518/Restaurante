@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de JavaScript - Carrito</title>
+</head>
+<body>
+    <h1>Validador de JavaScript - carrito.js</h1>
+    <div id="resultado"></div>
+    
+    <script>
+        // Validar que el archivo JavaScript no tenga errores de sintaxis
+    fetch('js/carrito.js')
+   .then(response => response.text())
+        .then(code => {
+ try {
+            // Intentar crear una nueva función con el código
+      new Function(code);
+ document.getElementById('resultado').innerHTML = `
+              <div style="color: green; padding: 20px; border: 2px solid green; border-radius: 5px;">
+   ? El archivo carrito.js NO tiene errores de sintaxis
+            <br><br>
+        <strong>Archivo validado exitosamente!</strong>
+           <br>
+          Todas las funciones están correctamente cerradas.
+           </div>
+         `;
+        } catch (error) {
+     document.getElementById('resultado').innerHTML = `
+            <div style="color: red; padding: 20px; border: 2px solid red; border-radius: 5px;">
+             ? Error de sintaxis encontrado:
+    <br><br>
+      <code>${error.message}</code>
+  <br><br>
+<strong>Línea aproximada:</strong> ${error.lineNumber || 'No disponible'}
+            </div>
+  `;
+            }
+    })
+   .catch(error => {
+ document.getElementById('resultado').innerHTML = `
+           <div style="color: orange; padding: 20px; border: 2px solid orange; border-radius: 5px;">
+             ?? No se pudo cargar el archivo:
+   <br><br>
+              <code>${error.message}</code>
+         </div>
+        `;
+  });
+    </script>
+</body>
+</html>

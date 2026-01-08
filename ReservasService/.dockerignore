@@ -1,0 +1,58 @@
+# .dockerignore para microservicios .NET
+# Ignora archivos innecesarios en el build de Docker
+
+## Build output
+bin/
+obj/
+out/
+publish/
+
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+## Testing
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+## NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+## Logs
+*.log
+logs/
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Git
+.git/
+.gitignore
+.gitattributes
+
+## Documentation
+*.md
+README*
+LICENSE*
+
+## Temporary files
+*.tmp
+*.temp
+tmp/
+temp/

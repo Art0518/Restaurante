@@ -1,0 +1,431 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+<title>Un Rincón en San Juan - Clientes</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* ============================
+           ESTILO TAL CUAL TU SISTEMA
+        ============================= */
+
+        .clientes-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 10px;
+        }
+
+        .tarjeta {
+            background: #fffaf2;
+            border: 1px solid #e6d5b8;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #5b4230;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fffdf7;
+            border-radius: 16px;
+            overflow: hidden;
+            font-size: 15px;
+        }
+
+        th {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e6d5b8;
+            color: #5b4230;
+        }
+
+        tr:hover {
+            background: #fff7ec;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #c9b18a;
+            margin-bottom: 5px;
+            background: #fffdf7;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn-editar {
+            background: #6b8e23;
+            color: white;
+        }
+
+        .btn-eliminar {
+            background: #d9534f;
+            color: white;
+        }
+
+        .btn-activar {
+            background: #6b8e23 !important;
+            color: white !important;
+            padding: 8px 14px !important; /* MISMO padding que INACTIVAR */
+            border-radius: 10px !important; /* MISMO border-radius */
+            border: none !important;
+            cursor: pointer !important;
+            font-weight: bold !important;
+            margin-left: 8px !important;
+            min-width: 110px !important; /* 👈 Asegura MISMO ancho */
+            text-align: center !important;
+            display: inline-block !important;
+        }
+
+
+        .btn-activar:hover {
+                opacity: .9;
+        }
+
+
+        .btn-agregar {
+            background: #6b8e23;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            float: right;
+            margin-bottom: 10px;
+            margin-top: -10px;
+            font-weight: bold;
+        }
+
+            .btn-agregar:hover {
+                opacity: .9;
+            }
+
+        /* PAGINACIÓN */
+        .paginacion {
+            margin-top: 18px;
+            text-align: center;
+        }
+
+            .paginacion button {
+                padding: 8px 15px;
+                border-radius: 10px;
+                border: none;
+                background: #6b8e23;
+                color: white;
+                cursor: pointer;
+                margin: 0 5px;
+                font-weight: bold;
+            }
+
+                .paginacion button:hover {
+                    opacity: .9;
+                }
+
+        /* ==================
+           MODAL OFICIAL
+        ================== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-content {
+            background: #fff8e8;
+            width: 450px;
+            padding: 30px;
+            border-radius: 18px;
+            border: 1px solid #e3c69c;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: aparecer 0.25s ease;
+            max-height: 90vh;
+        overflow-y: auto;
+        }
+
+        @keyframes aparecer {
+         from {
+           transform: scale(0.9);
+          opacity: 0;
+    }
+
+       to {
+      transform: scale(1);
+ opacity: 1;
+            }
+  }
+
+        .form-group {
+  margin-bottom: 18px;
+        }
+
+        .form-group label {
+  display: block;
+            font-weight: 600;
+            color: #5c4323;
+            margin-bottom: 6px;
+            font-size: 14px;
+ }
+
+        .form-group input,
+      .form-group textarea {
+  width: 100%;
+    padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #c9b18a;
+       background: #fffdf7;
+            font-size: 14px;
+        box-sizing: border-box;
+         transition: all 0.3s ease;
+    }
+
+      .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6b8e23;
+     box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
+        }
+
+        .form-group textarea {
+         resize: vertical;
+          font-family: inherit;
+        }
+
+        .form-group small {
+      display: block;
+    margin-top: 4px;
+            color: #8b7355;
+      font-size: 12px;
+            font-style: italic;
+        }
+
+  .form-group input.error,
+        .form-group textarea.error {
+   border-color: #d9534f;
+          background-color: #fff5f5;
+        }
+
+      .form-group input.success,
+      .form-group textarea.success {
+     border-color: #6b8e23;
+            background-color: #f5fff5;
+        }
+
+        #buscador {
+            width: 280px;
+            margin-bottom: 10px;
+        }
+
+        .fila-inactiva {
+            background: #fff2cc !important; /* Amarillo suave */
+        }
+
+        .modal-buttons {
+       margin-top: 25px;
+     display: flex;
+      justify-content: space-between;
+     gap: 12px;
+        }
+
+        .modal-save {
+      background: #6b8e23;
+     color: white;
+   padding: 12px 24px;
+            border-radius: 10px;
+border: none;
+   font-weight: bold;
+         cursor: pointer;
+     flex: 1;
+   transition: all 0.3s ease;
+   }
+
+        .modal-save:hover:not(:disabled) {
+            background: #5a7a1e;
+    transform: translateY(-2px);
+    }
+
+    .modal-save:disabled {
+    background: #a0a0a0;
+     cursor: not-allowed;
+       opacity: 0.6;
+        }
+
+  .modal-close {
+     background: #d9534f;
+            color: white;
+      padding: 12px 24px;
+          border-radius: 10px;
+    border: none;
+            font-weight: bold;
+      cursor: pointer;
+     flex: 1;
+      transition: all 0.3s ease;
+   }
+
+        .modal-close:hover {
+ background: #c9302c;
+            transform: translateY(-2px);
+  }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR igual que admin-reservas -->
+    <div id="navbar-container"></div>
+    <script>
+        fetch("components/navbar.html")
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("navbar-container").innerHTML = html;
+                const s = document.createElement("script");
+                s.src = "js/navbar.js";
+                document.body.appendChild(s);
+            });
+    </script>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal-container"></div>
+<script>
+        fetch("components/auth-modal.html")
+  .then(res => res.text())
+            .then(html => {
+     document.getElementById("auth-modal-container").innerHTML = html;
+      })
+            .catch(error => {
+      console.error("Error cargando el modal de autenticación:", error);
+            });
+  </script>
+
+    <!-- NOTIFICATION MODAL -->
+    <div id="notification-modal-container"></div>
+    <script>
+     fetch("components/notification-modal.html")
+    .then(res => res.text())
+    .then(html => {
+   document.getElementById("notification-modal-container").innerHTML = html;
+ })
+            .catch(error => {
+      console.error("Error cargando el modal de notificaciones:", error);
+     });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+ fetch("components/confirmation-modal.html")
+  .then(res => res.text())
+     .then(html => {
+document.getElementById("confirmation-modal-container").innerHTML = html;
+})
+ .catch(error => {
+       console.error("Error cargando el modal de confirmación:", error);
+  });
+    </script>
+
+    <main class="clientes-container">
+
+        <h1>Administración de Clientes</h1>
+
+        <!-- BUSCADOR (SIN BOTÓN AGREGAR) -->
+        <div class="tarjeta">
+            <input id="buscador" type="text" placeholder="Buscar por nombre o email...">
+        </div>
+
+        <!-- TABLA -->
+        <table id="tabla-clientes">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Telefono</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- PAGINACIÓN -->
+        <div class="paginacion">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+    </main>
+
+    <!-- MODAL EDITAR / AÑADIR -->
+    <div class="modal" id="modal-editar">
+        <div class="modal-content">
+       <h2 id="modal-title" style="text-align:center; color:#5c4323; margin-bottom: 20px;">Editar Cliente</h2>
+
+            <div class="form-group">
+             <label for="edit-nombre">Nombre Completo:</label>
+      <input id="edit-nombre" type="text" placeholder="Nombre y Apellido" required>
+       <small style="color: #888; font-size: 12px;">⚠️ Debe contener al menos nombre y apellido (solo letras, ñ y tildes)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-email">Email:</label>
+          <input id="edit-email" type="email" placeholder="correo@ejemplo.com" required>
+      <small style="color: #888; font-size: 12px;">✉️ Debe ser un email válido</small>
+            </div>
+
+  <div class="form-group">
+     <label for="edit-telefono">Teléfono:</label>
+    <input id="edit-telefono" type="tel" placeholder="809-000-0000" required>
+      <small style="color: #888; font-size: 12px;">📱 Formato: 809/829/849-XXX-XXXX (10 dígitos, el +1 es opcional)</small>
+  </div>
+
+<div class="form-group">
+           <label for="edit-direccion">Dirección:</label>
+    <textarea id="edit-direccion" placeholder="Calle #001, Sector, Ciudad, País" rows="3" required></textarea>
+           <small style="color: #888; font-size: 12px;">📍 Debe incluir calle, número, sector y ciudad (mínimo 10 caracteres)</small>
+            </div>
+
+    <div class="modal-buttons">
+   <button class="modal-close" onclick="cerrarModal()">Cancelar</button>
+   <button class="modal-save" onclick="guardarCambios()">Guardar</button>
+      </div>
+        </div>
+    </div>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/admin-clientes.js"></script>
+
+</body>
+</html>

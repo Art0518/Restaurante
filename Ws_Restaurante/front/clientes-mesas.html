@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Un Rincón en San Juan - Mesas</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+    <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            padding-top: 90px;
+        }
+
+        .contenedor {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 25px;
+            color: #5b4230;
+        }
+
+        .grid-mesas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .mesa-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 15px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            transition: 0.3s;
+        }
+
+            .mesa-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .mesa-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .mesa-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #463624;
+        }
+
+        .mesa-info {
+            margin-top: 8px;
+            color: #665544;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .estado {
+            font-weight: bold;
+        }
+
+        .btn-reservar {
+            background: #6b8e23;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+
+            .btn-reservar:hover {
+                opacity: 0.9;
+            }
+
+        .btn-disabled {
+            background: gray !important;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="navbar-container"></div>
+
+  <script>
+ fetch("components/navbar.html")
+  .then(res => res.text())
+    .then(html => {
+        document.getElementById("navbar-container").innerHTML = html;
+     const script = document.createElement("script");
+      script.src = "js/navbar.js";
+    document.body.appendChild(script);
+     });
+    </script>
+
+    <!-- NOTIFICATION MODAL -->
+<div id="notification-modal-container"></div>
+  <script>
+   fetch("components/notification-modal.html")
+    .then(res => res.text())
+ .then(html => {
+    document.getElementById("notification-modal-container").innerHTML = html;
+  })
+    .catch(error => {
+   console.error("Error cargando el modal de notificaciones:", error);
+  });
+    </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+  fetch("components/confirmation-modal.html")
+ .then(res => res.text())
+ .then(html => {
+       document.getElementById("confirmation-modal-container").innerHTML = html;
+  })
+     .catch(error => {
+   console.error("Error cargando el modal de confirmación:", error);
+    });
+    </script>
+
+    <main class="contenedor">
+
+        <h1>Mesas del Restaurante</h1>
+
+        <div id="lista-mesas" class="grid-mesas"></div>
+
+    </main>
+
+    <script>
+        const API = "http://cafesanjuanr.runasp.net/api/mesas";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarMesas(); // ← YA NO VALIDA LOGIN
+        });
+
+        function cargarMesas() {
+            fetch(API)
+                .then(r => r.json())
+                .then(data => {
+                    mostrarMesas(data);
+                });
+        }
+
+        function mostrarMesas(mesas) {
+            const cont = document.getElementById("lista-mesas");
+            cont.innerHTML = "";
+
+            mesas.forEach(m => {
+                let colorEstado =
+                    m.Estado === "Disponible" ? "green" :
+                        m.Estado === "Ocupada" ? "red" :
+                            "gray";
+
+                let disabled = m.Estado !== "Disponible" ? "btn-disabled" : "";
+
+                cont.innerHTML += `
+            <div class="mesa-card">
+                <img src="${m.ImagenURL}" class="mesa-img">
+
+                <p class="mesa-title">Mesa ${m.NumeroMesa}</p>
+
+                <div class="mesa-info">
+                    <p><b>Tipo:</b> ${m.TipoMesa}</p>
+                    <p><b>Capacidad:</b> ${m.Capacidad} personas</p>
+                    <p><b>Precio por Reserva:</b> $${m.Precio ? m.Precio.toFixed(2) : '0.00'}</p>
+
+                    <p><b>Estado:</b>
+                        <span style="color:${colorEstado}; font-weight:bold;">
+                            ${m.Estado}
+                        </span>
+                    </p>
+                </div>
+
+                <button class="btn-reservar ${disabled}"
+                        onclick="reservarMesa(${m.IdMesa}, '${m.Estado}')">
+                    Reservar
+                </button>
+            </div>
+        `;
+            });
+        }
+
+
+        function reservarMesa(idMesa, estado) {
+
+   if (estado !== "Disponible") {
+     showWarning("Esta mesa no está disponible.");
+    return;
+ }
+
+     const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+            if (!usuario) {
+     showWarning("Debes iniciar sesión para reservar.", "Autenticación Requerida", function() {
+    window.location.href = "index.html";
+   });
+   return;
+   }
+
+       // Si está logueado → enviarlo al sistema de reservas
+   window.location.href = "reservas.html?idMesa=" + idMesa;
+    }
+    </script>
+
+    <!-- AUTH SCRIPT -->
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/auth.js"></script>
+
+</body>
+</html>

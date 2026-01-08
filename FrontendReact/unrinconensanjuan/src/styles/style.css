@@ -1,0 +1,817 @@
+/* === BASE === */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  color: #3e2f21;
+  background-color: #fffaf2;
+  overflow-x: hidden;
+}
+
+/* === HEADER === */
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(to right, #3e2f21, #6b8e23);
+  color: white;
+  z-index: 100;
+  padding: 10px 0;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Contenedor centrado */
+.navbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+}
+
+/* Logo */
+.logo {
+  height: 60px;
+  border-radius: 10px;
+}
+
+/* Contenedor del texto */
+.nav-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Enlaces */
+.nav-link {
+  color: #f5d7a5;
+  font-weight: 600;
+  font-size: 1.05em;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #ffd785;
+  transform: translateY(-2px);
+}
+
+/* Separador decorativo */
+.separator {
+  color: #f5d7a5;
+  opacity: 0.8;
+  font-size: 1.1em;
+  padding: 0 5px;
+}
+
+/* === HERO SECTION === */
+.home-hero {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+  background-image: url("/fondo-playa.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* capa de oscurecimiento */
+.home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 0;
+}
+
+/* contenido centrado */
+.home-content {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  padding: 40px;
+  color: #fff;
+}
+
+.home-content h1 {
+  font-family: "Playfair Display", serif;
+  font-size: 3.8rem;
+  line-height: 1.2;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.home-content p {
+  font-size: 1.2rem;
+  color: #f5f5f5;
+  margin-bottom: 35px;
+}
+
+button {
+  background-color: #6b8e23;
+  color: white;
+  border: none;
+  padding: 14px 45px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+button:hover {
+  background-color: #557a1b;
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* === HISTORIA === */
+.historia-section {
+  text-align: center;
+  padding-bottom: 60px;
+}
+
+.historia-section h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 2.4em;
+  margin-bottom: 20px;
+  color: #3e2f21;
+}
+
+.historia-section p {
+  max-width: 850px;
+  margin: 0 auto 40px auto;
+  line-height: 1.8em;
+  font-size: 1.1em;
+  color: #4a3b2e;
+}
+
+.historia-imagen-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.historia-imagen {
+  width: 90%;
+  max-width: 1000px;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.historia-imagen:hover {
+  transform: scale(1.03);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* === SECCIONES GENERALES === */
+.section {
+  width: 100%;
+  min-height: 90vh;
+  padding: 100px 20px;
+  background-color: #fffaf2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.section:nth-child(even) {
+  background-color: #fdf7ec;
+}
+
+.section h2 {
+  font-family: "Playfair Display", serif;
+  font-size: 2.4em;
+  margin-bottom: 20px;
+  color: #3e2f21;
+}
+
+.section p {
+  max-width: 900px;
+  line-height: 1.7em;
+  font-size: 1.1em;
+  color: #4a3b2e;
+}
+
+/* === GALERÍA === */
+.grid-especialidades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  margin-top: 50px;
+  width: 90%;
+  max-width: 1100px;
+  justify-content: center;
+}
+
+.card-especialidad {
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-especialidad img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-bottom: 4px solid #6b8e23;
+  transition: transform 0.5s ease;
+}
+
+.card-especialidad:hover img {
+  transform: scale(1.1);
+}
+
+.card-especialidad:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+.card-especialidad h3 {
+  font-family: "Playfair Display", serif;
+  color: #3e2f21;
+  font-size: 1.4em;
+  margin: 15px 0 5px 0;
+}
+
+.card-especialidad p {
+  font-size: 1em;
+  color: #5a4a3a;
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+/* === FORMULARIO DE RESERVAS === */
+.reserva-form {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fffaf2;
+  text-align: center;
+  z-index: 0;
+  background-image: url("/Cafe.png");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.reserva-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  background: transparent;
+  padding: 20px;
+  width: 100%;
+  max-width: 900px;
+  animation: fadeInUp 0.8s ease-out;
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.reserva-form::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 0;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.zona-opciones, .personas-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.zona-opciones button, .personas-grid button {
+  background-color: #6b8e23;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 15px 40px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.zona-opciones button:hover, .personas-grid button:hover {
+  background-color: #557a1b;
+  transform: scale(1.08);
+}
+
+/* === FORMULARIO MEJORADO === */
+.reserva-formulario {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  margin: 0 auto;
+  gap: 20px;
+  width: 100%;
+  max-width: 480px;
+  text-align: left;
+}
+
+.reserva-formulario label {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 1.15em;
+}
+
+.reserva-formulario input,
+.reserva-formulario select,
+.reserva-formulario textarea {
+  width: 100%;
+  padding: 14px 18px;
+  font-size: 1.05em;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.reserva-formulario input:focus,
+.reserva-formulario select:focus,
+.reserva-formulario textarea:focus {
+  border-color: #9acd32;
+  background: rgba(107, 142, 35, 0.3);
+  box-shadow: 0 0 10px rgba(154, 205, 50, 0.4);
+}
+
+/* SELECT personalizado */
+.reserva-formulario select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg fill='white' height='20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5 7l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.reserva-formulario select option {
+  background-color: #3e2f21;
+  color: #fff;
+  padding: 10px;
+  font-size: 1em;
+}
+
+/* Botón principal */
+.btn-verde {
+  background-color: #6b8e23;
+  background: linear-gradient(135deg, #6b8e23, #8dbb35);
+  color: white;
+  border: none;
+  padding: 14px 40px;
+  border-radius: 35px;
+  font-weight: 700;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-verde:hover {
+  background: linear-gradient(135deg, #8dbb35, #6b8e23);
+  transform: scale(1.07);
+}
+
+/* Botón volver */
+.volver-btn {
+  font-size: 1.05em;
+  padding: 12px 30px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.volver-btn:hover {
+  background-color: #6b8e23;
+  color: #fff;
+  border-color: #6b8e23;
+  transform: scale(1.05);
+}
+
+/* Animaciones */
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === CONTACTO === */
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  margin: 10px 0;
+  font-size: 1.1em;
+}
+
+.contact-item i {
+  color: #6b8e23;
+}
+
+/* === FOOTER === */
+footer {
+  text-align: center;
+  padding: 15px;
+  background: #3e2f21;
+  color: #f5d7a5;
+  font-size: 0.9em;
+  box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .home-content h1 {
+    font-size: 2.3rem;
+  }
+  .home-content p {
+    font-size: 1rem;
+  }
+  .navbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+  button {
+    width: 100%;
+  }
+  .grid-especialidades {
+    gap: 25px;
+  }
+}
+
+/* === PANTALLA DE CARGA - CAFÉ SAN JUAN === */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #fffaf2; /* tono crema de fondo */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  overflow: hidden;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Contenedor del logo con animación de latido */
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
+/* Imagen del logo */
+.logo-animado {
+  width: 200px;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+/* Texto de carga */
+.loading-text {
+  margin-top: 25px;
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #4a2c0a; /* tono café oscuro */
+  font-family: 'Poppins', sans-serif;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+
+/* === Animaciones === */
+@keyframes pulse {
+  0%   { transform: scale(1); opacity: 1; }
+  50%  { transform: scale(1.15); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Botón Iniciar sesión en la barra de navegación */
+.login-btn {
+  background-color: #6b8e23;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background-color: #557a1b;
+  transform: translateY(-2px);
+}
+
+/* === MODAL DE AUTENTICACIÓN === */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(3px);
+}
+
+.auth-modal {
+  position: relative;
+  background-color: #fff;
+  padding: 50px 40px 40px;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  color: #3e2f21;
+  animation: slideIn 0.4s ease-out;
+}
+
+/* ✨ Animación sutil */
+@keyframes slideIn {
+  from { transform: translateY(-30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* === BOTÓN DE CIERRE ELEGANTE === */
+/* === BOTÓN DE CIERRE FINAL === */
+.close-btn {
+  position: absolute;
+  top: -12px; /* flota ligeramente fuera del modal */
+  right: -12px;
+  width: 36px;
+  height: 36px;
+  background-color: #6b8e23; /* verde oliva */
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s ease;
+  line-height: 1;
+}
+
+/* ❌ quitar animación doble y simplificar hover */
+.close-btn:hover {
+  background-color: #ff4444;
+  transform: scale(1.1);
+}
+
+/* ❗ Elimina el pseudo-elemento duplicado */
+.auth-modal .close-btn::before {
+  content: none !important;
+}
+
+/* === FORMULARIO === */
+.auth-modal h2 {
+  margin-top: 15px;
+  margin-bottom: 20px;
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  color: #3e2f21;
+}
+
+.auth-modal label {
+  display: block;
+  text-align: left;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #3e2f21;
+}
+
+.auth-modal input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 6px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f7f7f7;
+  font-size: 1rem;
+  color: #3e2f21;
+  transition: all 0.3s ease;
+}
+
+.auth-modal input:focus {
+  outline: none;
+  border-color: #6b8e23;
+  box-shadow: 0 0 8px rgba(107, 142, 35, 0.4);
+}
+
+/* Botón principal */
+.auth-modal .btn-verde {
+  background: linear-gradient(135deg, #6b8e23, #8dbb35);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1em;
+  border-radius: 30px;
+  padding: 12px 35px;
+  width: 100%;
+  margin-top: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.auth-modal .btn-verde:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #8dbb35, #6b8e23);
+}
+
+/* Texto inferior */
+.auth-modal p {
+  margin-top: 20px;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.auth-modal a {
+  color: #6b8e23;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.auth-modal a:hover {
+  text-decoration: underline;
+  color: #557a1b;
+}
+
+/* === MENÚ DE COMIDA === */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 40px;
+
+  width: 100%;
+  max-width: 1000px;
+  margin: 40px auto;
+  justify-items: center;
+}
+
+
+.menu-card {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.menu-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-bottom: 4px solid #6b8e23;
+  transition: transform 0.4s ease;
+}
+
+.menu-card:hover img {
+  transform: scale(1.08);
+}
+
+.menu-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+}
+
+.menu-card h3 {
+  margin: 15px 0 10px 0;
+  font-family: "Playfair Display", serif;
+  color: #3e2f21;
+  font-size: 1.3em;
+}
+
+/* === Botón Ordenar === */
+.btn-order {
+  background-color: #6b8e23;
+  border: none;
+  padding: 12px 35px;
+  border-radius: 30px;
+  color: white;
+  font-weight: 600;
+  font-size: 1em;
+  margin-bottom: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-order:hover {
+  background-color: #557a1b;
+  transform: translateY(-3px) scale(1.05);
+}
+
+/* === Corrección especial para centrar el menú === */
+.menu-section {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: block !important;
+}
+
+.menu-section:nth-child(even) {
+  background-color: #fffaf2 !important;
+}
+
+html, body, #root {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;
+}
+
+/* === Nombre del usuario (Navbar) === */
+.user-name {
+  color: #f5d7a5;
+  font-weight: 600;
+  font-size: 1.05em;
+  margin-right: 20px;
+}
+
+/* Nombre de usuario */
+.user-name {
+  color: #f5d7a5;
+  font-weight: 600;
+  font-size: 1.05em;
+  margin-right: 20px;
+}
+
+/* Botón de añadir plato */
+.btn-add-plato {
+  background-color: #8dbb35;
+  padding: 10px 20px;
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95em;
+  margin-right: 20px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.btn-add-plato:hover {
+  background-color: #6b8e23;
+  transform: scale(1.05);
+}

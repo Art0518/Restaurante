@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Rincón en San Juan - Confirmación</title>
+  
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/logo-rincon.png">
+  <link rel="shortcut icon" type="image/png" href="img/logo-rincon.png">
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div id="navbar-container"></div>
+    <script>
+  fetch("components/navbar.html")
+       .then(r => r.text())
+       .then(html => {
+  document.getElementById("navbar-container").innerHTML = html;
+
+       const s = document.createElement("script");
+     s.src = "js/navbar.js";
+    document.body.appendChild(s);
+ });
+    </script>
+
+    <!-- NOTIFICATION MODAL -->
+ <div id="notification-modal-container"></div>
+    <script>
+        fetch("components/notification-modal.html")
+   .then(res => res.text())
+   .then(html => {
+       document.getElementById("notification-modal-container").innerHTML = html;
+ })
+ .catch(error => {
+ console.error("Error cargando el modal de notificaciones:", error);
+      });
+ </script>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmation-modal-container"></div>
+    <script>
+        fetch("components/confirmation-modal.html")
+  .then(res => res.text())
+       .then(html => {
+ document.getElementById("confirmation-modal-container").innerHTML = html;
+  })
+  .catch(error => {
+     console.error("Error cargando el modal de confirmación:", error);
+   });
+ </script>
+
+   <!-- CONTENEDOR DE CONFIRMACIÓN -->
+    <main class="confirmacion-container fade-in">
+
+     <div class="confirmacion-box">
+
+    <h2>¡Tu reserva fue creada con éxito!</h2>
+
+   <div id="detalleReserva">
+       <p style="text-align: center; color: #6c757d; font-style: italic; margin-bottom: 30px;">
+    Cargando datos de la reserva...
+       </p>
+     </div>
+
+            <div style="text-align:center;">
+         <a href="index.html" class="btn-confirm-home">
+    <button class="btn-verde">Volver al inicio</button>
+      </a>
+  </div>
+
+   </div>
+
+ </main>
+
+    <!-- FOOTER -->
+    <div id="footer-container"></div>
+    <script>
+   fetch("components/footer.html")
+  .then(r => r.text())
+  .then(html => {
+  document.getElementById("footer-container").innerHTML = html;
+            });
+
+    // ================================
+    //  CARGAR DATOS DE LA RESERVA ACTUAL
+    // ================================
+ // Función para cargar datos inmediatamente
+function cargarDatosReserva() {
+    console.log('Iniciando carga de datos de reserva...');
+    
+    // Intentar obtener los datos de localStorage
+    const reservaData = localStorage.getItem("reservaConfirmada");
+    console.log('Datos raw de localStorage:', reservaData);
+
+    if (reservaData) {
+     try {
+            const reservaObj = JSON.parse(reservaData);
+  console.log('Datos parseados:', reservaObj);
+     
+ // Verificar que los datos son recientes (menos de 5 minutos)
+            const tiempoTranscurrido = Date.now() - (reservaObj.TimeStamp || 0);
+   if (tiempoTranscurrido > 300000) { // 5 minutos
+        console.log('Los datos son muy antiguos, podrían ser de otra reserva');
+            }
+
+            // Formatear la fecha
+            let fechaFormateada = reservaObj.Fecha;
+    try {
+                if (reservaObj.Fecha) {
+    // Si la fecha viene en formato YYYY-MM-DD, convertirla
+    const fecha = new Date(reservaObj.Fecha + 'T00:00:00');
+       fechaFormateada = fecha.toLocaleDateString('es-ES', { 
+ weekday: 'long', 
+             year: 'numeric', 
+        month: 'long', 
+      day: 'numeric' 
+            });
+ }
+     } catch (e) {
+           console.log('Error formateando fecha, usando original:', e);
+         fechaFormateada = reservaObj.Fecha;
+            }
+
+  // Determinar la clase CSS y texto del estado
+  let estadoClase = 'estado-badge';
+        let estadoTexto = reservaObj.Estado || 'HOLD';
+            
+if (estadoTexto === 'HOLD') {
+                estadoClase += ' estado-hold';
+    estadoTexto = 'En Espera de Confirmación';
+      } else if (estadoTexto === 'Confirmada' || estadoTexto === 'CONFIRMADA') {
+     estadoClase += ' estado-confirmada';
+      estadoTexto = 'Confirmada';
+  } else if (estadoTexto === 'Cancelada' || estadoTexto === 'CANCELADA') {
+                estadoClase += ' estado-cancelada';
+        estadoTexto = 'Cancelada';
+            }
+
+            // Crear el HTML con los datos
+            const detalleHTML = `
+    <p><strong>Fecha:</strong> <span>${fechaFormateada || 'No especificada'}</span></p>
+       <p><strong>Hora:</strong> <span>${reservaObj.Hora || 'No especificada'}</span></p>
+  <p><strong>Número de personas:</strong> <span>${reservaObj.NumeroPersonas || 'No especificado'}</span></p>
+        <p><strong>Mesa asignada:</strong> <span>Mesa #${reservaObj.IdMesa || 'No asignada'}</span></p>
+        <p><strong>Comentarios:</strong> <span>${reservaObj.Observaciones || "Ninguno"}</span></p>
+          <p><strong>Estado:</strong> <span class="${estadoClase}">${estadoTexto}</span></p>
+         `;
+     
+         document.getElementById("detalleReserva").innerHTML = detalleHTML;
+    
+        } catch (error) {
+            console.error('Error parseando datos de reserva:', error);
+            mostrarError();
+        }
+    } else {
+    console.log('No se encontraron datos de reserva en localStorage');
+     mostrarError();
+    }
+}
+
+function mostrarError() {
+    document.getElementById("detalleReserva").innerHTML = `
+   <div style="text-align: center; padding: 30px;">
+  <p style="color: #dc3545; font-size: 1.2em; margin-bottom: 15px;">
+    <strong>No se encontraron datos de la reserva</strong>
+    </p>
+      <p style="color: #6c757d; font-size: 1em;">
+ La reserva se creó correctamente, pero hubo un problema cargando los detalles.
+   </p>
+     <p style="margin-top: 20px;">
+    <a href="reservas.html" style="color: #6b8e23; text-decoration: underline;">
+    Hacer una nueva reserva
+    </a> | 
+ <a href="mis-reservas.html" style="color: #6b8e23; text-decoration: underline;">
+          Ver mis reservas
+        </a>
+        </p>
+   </div>`;
+}
+
+// Ejecutar inmediatamente y también cuando el DOM esté listo
+cargarDatosReserva();
+document.addEventListener('DOMContentLoaded', cargarDatosReserva);
+
+// También intentar cargar después de un pequeño delay por si acaso
+setTimeout(cargarDatosReserva, 500);
+    </script>
+
+    <script src="js/global-init.js"></script>
+    <script src="js/notifications.js"></script>
+
+</body>
+</html>

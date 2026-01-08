@@ -1,0 +1,39 @@
+@baseUrl = http://localhost:5004
+
+### Verificar servicio
+GET {{baseUrl}}/
+
+### Listar facturas
+GET {{baseUrl}}/api/facturacion/listar
+
+### Generar factura desde carrito
+POST {{baseUrl}}/api/facturacion/generar-carrito
+Content-Type: application/json
+
+{
+  "idUsuario": 10028,
+  "reservasIds": "10027,10028",
+  "promocionId": null,
+  "metodoPago": ""
+}
+
+### Obtener factura detallada
+GET {{baseUrl}}/api/facturacion/1/detallada
+
+### Marcar factura como pagada
+POST {{baseUrl}}/api/facturacion/marcar-pagada
+Content-Type: application/json
+
+{
+  "idFactura": 1,
+  "metodoPago": "Tarjeta de Crédito"
+}
+
+### Listar facturas de usuario
+GET {{baseUrl}}/api/facturacion/usuario/10028
+
+### Listar detalles de factura
+GET {{baseUrl}}/api/detallefactura/factura/1
+
+### Obtener estadísticas
+GET {{baseUrl}}/api/detallefactura/estadisticas/factura/1

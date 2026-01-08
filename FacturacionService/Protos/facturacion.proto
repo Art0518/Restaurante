@@ -1,0 +1,145 @@
+syntax = "proto3";
+
+option csharp_namespace = "FacturacionService.Protos";
+
+package facturacion;
+
+service FacturacionGrpc {
+  rpc GenerarFactura (GenerarFacturaRequest) returns (GenerarFacturaResponse);
+  rpc ListarFacturas (ListarFacturasRequest) returns (ListarFacturasResponse);
+  rpc ObtenerFactura (ObtenerFacturaRequest) returns (ObtenerFacturaResponse);
+  rpc MarcarFacturaPagada (MarcarFacturaPagadaRequest) returns (MarcarFacturaPagadaResponse);
+  rpc AnularFactura (AnularFacturaRequest) returns (AnularFacturaResponse);
+  rpc ListarFacturasUsuario (ListarFacturasUsuarioRequest) returns (ListarFacturasUsuarioResponse);
+  rpc ObtenerFacturaDetallada (ObtenerFacturaDetalladaRequest) returns (ObtenerFacturaDetalladaResponse);
+  rpc CalcularTotales (CalcularTotalesRequest) returns (CalcularTotalesResponse);
+}
+
+// Mensajes para GenerarFactura
+message GenerarFacturaRequest {
+  int32 idUsuario = 1;
+  int32 idReserva = 2;
+  string metodoPago = 3;
+  float subtotal = 4;
+}
+
+message GenerarFacturaResponse {
+  bool success = 1;
+string mensaje = 2;
+  int32 idFactura = 3;
+  Factura factura = 4;
+}
+
+// Mensajes para ListarFacturas
+message ListarFacturasRequest {
+}
+
+message ListarFacturasResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Factura facturas = 3;
+}
+
+// Mensajes para ObtenerFactura
+message ObtenerFacturaRequest {
+  int32 idFactura = 1;
+}
+
+message ObtenerFacturaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Factura factura = 3;
+  repeated DetalleFactura detalles = 4;
+}
+
+// Mensajes para MarcarFacturaPagada
+message MarcarFacturaPagadaRequest {
+  int32 idFactura = 1;
+  string metodoPago = 2;
+  string fechaPago = 3;
+}
+
+message MarcarFacturaPagadaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  string estado = 3;
+}
+
+// Mensajes para AnularFactura
+message AnularFacturaRequest {
+  int32 idFactura = 1;
+  string motivo = 2;
+}
+
+message AnularFacturaResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para ListarFacturasUsuario
+message ListarFacturasUsuarioRequest {
+  int32 idUsuario = 1;
+}
+
+message ListarFacturasUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Factura facturas = 3;
+}
+
+// Mensajes para ObtenerFacturaDetallada
+message ObtenerFacturaDetalladaRequest {
+  int32 idFactura = 1;
+}
+
+message ObtenerFacturaDetalladaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Factura factura = 3;
+  repeated DetalleFactura detalles = 4;
+  Usuario usuario = 5;
+}
+
+// Mensajes para CalcularTotales
+message CalcularTotalesRequest {
+  Factura factura = 1;
+  float porcentajeIva = 2;
+}
+
+message CalcularTotalesResponse {
+  bool success = 1;
+  Factura factura = 2;
+}
+
+// Modelos
+message Factura {
+  int32 idFactura = 1;
+  int32 idUsuario = 2;
+  int32 idReserva = 3;
+  string fechaEmision = 4;
+  float subtotal = 5;
+  float iva = 6;
+  float total = 7;
+  string estado = 8;
+  string numeroFactura = 9;
+  string metodoPago = 10;
+  string fechaPago = 11;
+}
+
+message DetalleFactura {
+  int32 idDetalleFactura = 1;
+  int32 idFactura = 2;
+  int32 idReserva = 3;
+  string descripcion = 4;
+  int32 cantidad = 5;
+float precioUnitario = 6;
+  float subtotal = 7;
+}
+
+message Usuario {
+  int32 idUsuario = 1;
+  string nombre = 2;
+  string apellido = 3;
+  string email = 4;
+  string telefono = 5;
+}

@@ -1,0 +1,35 @@
+### ==================================
+### VERIFICAR SERVICIOS GRAPHQL
+### ==================================
+
+### 1. Verificar FacturacionService GraphQL (Puerto 5004)
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { queryType { name } mutationType { name } } }"
+}
+
+### 2. Verificar MenuService GraphQL (Puerto 5002)
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { queryType { name } mutationType { name } } }"
+}
+
+### 3. Verificar ReservasService GraphQL (Puerto 5003)
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { queryType { name } mutationType { name } } }"
+}
+
+### 4. Verificar SeguridadService GraphQL (Puerto 5001)
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { queryType { name } mutationType { name } } }"
+}

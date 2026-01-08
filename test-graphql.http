@@ -1,0 +1,275 @@
+### ==================================
+### PRUEBAS GRAPHQL - CAFESANJUAN
+### ==================================
+
+### ============================================
+### FACTURACION SERVICE - GraphQL (Puerto 5004)
+### ============================================
+
+### 1. Listar todas las facturas
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ facturas { idFactura idUsuario total estado metodoPago fechaEmision } }"
+}
+
+### 2. Obtener factura por ID
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ factura(id: 1) { idFactura idUsuario total estado metodoPago fechaEmision } }"
+}
+
+### 3. Obtener factura detallada
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ facturaDetallada(id: 1) { idFactura total estado detalles { idDetalleFactura descripcion cantidad precioUnitario subtotal } } }"
+}
+
+### 4. Listar facturas por usuario
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ facturasPorUsuario(idUsuario: 10028) { idFactura total estado fechaEmision } }"
+}
+
+### 5. Generar factura desde carrito (Mutation)
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { generarFacturaDesdeCarrito(input: { idUsuario: 10028, reservasIds: \"10027,10028\", promocionId: null, metodoPago: \"Efectivo\" }) { idFactura total estado } }"
+}
+
+### 6. Marcar factura como pagada (Mutation)
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { marcarFacturaPagada(input: { idFactura: 1, metodoPago: \"Tarjeta de Crédito\" }) }"
+}
+
+### 7. Obtener estadísticas de factura
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ estadisticasFactura(idFactura: 1) }"
+}
+
+
+### ============================================
+### MENU SERVICE - GraphQL (Puerto 5002)
+### ============================================
+
+### 1. Listar todos los platos
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ platos { idPlato nombre descripcion precio categoria disponible } }"
+}
+
+### 2. Obtener plato por ID
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ plato(id: 1) { idPlato nombre descripcion precio categoria disponible } }"
+}
+
+### 3. Listar platos por categoría
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ platosPorCategoria(categoria: \"Bebidas\") { idPlato nombre precio } }"
+}
+
+### 4. Listar platos disponibles
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ platosDisponibles { idPlato nombre precio disponible } }"
+}
+
+### 5. Crear plato (Mutation)
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { crearPlato(input: { nombre: \"Café Latte GraphQL\", descripcion: \"Café con leche espumosa\", precio: 4.50, categoria: \"Bebidas\", disponible: true }) }"
+}
+
+### 6. Actualizar plato (Mutation)
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { actualizarPlato(id: 1, input: { nombre: \"Café Americano Premium\", descripcion: \"Café americano de alta calidad\", precio: 3.50, categoria: \"Bebidas\", disponible: true }) }"
+}
+
+### 7. Listar promociones
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ promociones { idPromocion nombre descripcion descuento activo } }"
+}
+
+### 8. Listar promociones activas
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ promocionesActivas { idPromocion nombre descuento fechaInicio fechaFin } }"
+}
+
+
+### ============================================
+### RESERVAS SERVICE - GraphQL (Puerto 5003)
+### ============================================
+
+### 1. Listar todas las reservas
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ reservas { idReserva idUsuario idMesa fechaReserva numeroPersonas estado } }"
+}
+
+### 2. Obtener reserva por ID
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ reserva(id: 1) { idReserva idUsuario idMesa fechaReserva numeroPersonas estado } }"
+}
+
+### 3. Listar reservas por usuario
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ reservasPorUsuario(idUsuario: 10028) { idReserva fechaReserva numeroPersonas estado } }"
+}
+
+### 4. Listar mesas disponibles
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ mesasDisponibles(idRestaurante: 1, fecha: \"2024-01-20T18:00:00\") { idMesa numeroMesa capacidad estado } }"
+}
+
+### 5. Crear reserva (Mutation)
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { crearReserva(input: { idUsuario: 10028, idMesa: 1, fechaReserva: \"2024-01-25T19:00:00\", numeroPersonas: 4, estado: \"Pendiente\" }) }"
+}
+
+### 6. Confirmar reserva (Mutation)
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { confirmarReserva(id: 1) }"
+}
+
+### 7. Listar restaurantes
+POST http://localhost:5003/graphql
+Content-Type: application/json
+
+{
+  "query": "{ restaurantes { idRestaurante nombre direccion telefono } }"
+}
+
+
+### ============================================
+### SEGURIDAD SERVICE - GraphQL (Puerto 5001)
+### ============================================
+
+### 1. Listar todos los usuarios
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "{ usuarios { idUsuario nombre email telefono rol estado } }"
+}
+
+### 2. Obtener usuario por ID
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "{ usuario(id: 10028) { idUsuario nombre email telefono rol estado } }"
+}
+
+### 3. Obtener usuario por email
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "{ usuarioPorEmail(email: \"juan@example.com\") { idUsuario nombre email rol } }"
+}
+
+### 4. Listar usuarios por rol
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "{ usuariosPorRol(rol: \"Cliente\") { idUsuario nombre email } }"
+}
+
+### 5. Registrar usuario (Mutation)
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { registrarUsuario(input: { nombre: \"Test GraphQL\", email: \"testgql@example.com\", contrasena: \"Pass123!\", telefono: \"555-9999\", rol: \"Cliente\" }) { success message idUsuario } }"
+}
+
+### 6. Login (Mutation)
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { login(input: { email: \"juan@example.com\", contrasena: \"password123\" }) { success message token usuario { idUsuario nombre email rol } } }"
+}
+
+### 7. Actualizar usuario (Mutation)
+POST http://localhost:5001/graphql
+Content-Type: application/json
+
+{
+  "query": "mutation { actualizarUsuario(id: 10028, input: { nombre: \"Juan Pérez Updated\", email: \"juan@example.com\", telefono: \"555-1234\", rol: \"Cliente\" }) }"
+}
+
+
+### ============================================
+### INTROSPECCIÓN - Schema GraphQL
+### ============================================
+
+### Ver schema completo de FacturacionService
+POST http://localhost:5004/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __schema { types { name fields { name type { name } } } } }"
+}
+
+### Ver tipos disponibles en MenuService
+POST http://localhost:5002/graphql
+Content-Type: application/json
+
+{
+  "query": "{ __type(name: \"Query\") { name fields { name description type { name } } } }"
+}

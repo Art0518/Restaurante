@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+option csharp_namespace = "ReservasService.Protos";
+
+package reservas;
+
+service ReservasGrpc {
+  rpc CrearReserva (CrearReservaRequest) returns (CrearReservaResponse);
+  rpc ObtenerReserva (ObtenerReservaRequest) returns (ObtenerReservaResponse);
+  rpc ListarReservasUsuario (ListarReservasUsuarioRequest) returns (ListarReservasUsuarioResponse);
+  rpc ListarReservasFecha (ListarReservasFechaRequest) returns (ListarReservasFechaResponse);
+  rpc ActualizarReserva (ActualizarReservaRequest) returns (ActualizarReservaResponse);
+  rpc CancelarReserva (CancelarReservaRequest) returns (CancelarReservaResponse);
+  rpc ObtenerMesas (ObtenerMesasRequest) returns (ObtenerMesasResponse);
+  rpc ObtenerRestaurantes (ObtenerRestaurantesRequest) returns (ObtenerRestaurantesResponse);
+}
+
+// Mensajes para CrearReserva
+message CrearReservaRequest {
+  int32 idUsuario = 1;
+  int32 idMesa = 2;
+  int32 idRestaurante = 3;
+  string fechaReserva = 4;
+  string horaReserva = 5;
+  int32 numeroPersonas = 6;
+  string notas = 7;
+}
+
+message CrearReservaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  int32 idReserva = 3;
+  Reserva reserva = 4;
+}
+
+// Mensajes para ObtenerReserva
+message ObtenerReservaRequest {
+  int32 idReserva = 1;
+}
+
+message ObtenerReservaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  Reserva reserva = 3;
+  Mesa mesa = 4;
+  Restaurante restaurante = 5;
+}
+
+// Mensajes para ListarReservasUsuario
+message ListarReservasUsuarioRequest {
+  int32 idUsuario = 1;
+}
+
+message ListarReservasUsuarioResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Reserva reservas = 3;
+}
+
+// Mensajes para ListarReservasFecha
+message ListarReservasFechaRequest {
+  string fecha = 1;
+  int32 idRestaurante = 2;
+}
+
+message ListarReservasFechaResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Reserva reservas = 3;
+}
+
+// Mensajes para ActualizarReserva
+message ActualizarReservaRequest {
+  int32 idReserva = 1;
+  string fechaReserva = 2;
+  string horaReserva = 3;
+  int32 numeroPersonas = 4;
+  string notas = 5;
+}
+
+message ActualizarReservaResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para CancelarReserva
+message CancelarReservaRequest {
+  int32 idReserva = 1;
+  string motivo = 2;
+}
+
+message CancelarReservaResponse {
+  bool success = 1;
+  string mensaje = 2;
+}
+
+// Mensajes para ObtenerMesas
+message ObtenerMesasRequest {
+  int32 idRestaurante = 1;
+}
+
+message ObtenerMesasResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Mesa mesas = 3;
+}
+
+// Mensajes para ObtenerRestaurantes
+message ObtenerRestaurantesRequest {
+}
+
+message ObtenerRestaurantesResponse {
+  bool success = 1;
+  string mensaje = 2;
+  repeated Restaurante restaurantes = 3;
+}
+
+// Modelos
+message Reserva {
+  int32 idReserva = 1;
+  int32 idUsuario = 2;
+  int32 idMesa = 3;
+  int32 idRestaurante = 4;
+  string fechaReserva = 5;
+  string horaReserva = 6;
+  int32 numeroPersonas = 7;
+  string estado = 8;
+  string notas = 9;
+  string fechaCreacion = 10;
+}
+
+message Mesa {
+  int32 idMesa = 1;
+  int32 idRestaurante = 2;
+  int32 numeroMesa = 3;
+  int32 capacidad = 4;
+  string ubicacion = 5;
+  bool disponible = 6;
+}
+
+message Restaurante {
+  int32 idRestaurante = 1;
+  string nombre = 2;
+  string direccion = 3;
+  string telefono = 4;
+  string horarioApertura = 5;
+  string horarioCierre = 6;
+  bool activo = 7;
+}
