@@ -5,10 +5,10 @@ WORKDIR /src
 # Copy everything and restore dependencies
 COPY . .
 WORKDIR /src/MenuService
-RUN dotnet restore
+RUN dotnet restore MenuService.csproj
 
 # Publish stage
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish MenuService.csproj -c Release -o /app/publish
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
