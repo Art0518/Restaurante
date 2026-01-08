@@ -3,6 +3,10 @@ using SeguridadService.GraphQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configurar puerto dinámico de Railway
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Add services to the container.
 builder.Services.AddGrpc();
 builder.Services.AddControllers();
@@ -12,10 +16,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
-  .AllowAnyMethod()
-    .AllowAnyHeader()
-     .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
+  policy.AllowAnyOrigin()
+      .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding");
     });
 });
 
@@ -26,7 +30,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddSingleton(provider =>
     new SeguridadGrpcService(
         provider.GetRequiredService<ILogger<SeguridadGrpcService>>(),
-     connectionString
+        connectionString
     )
 );
 

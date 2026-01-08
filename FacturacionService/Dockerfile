@@ -13,6 +13,5 @@ COPY --from=build /app/publish .
 
 # Railway proporciona la variable PORT automáticamente
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 
 ENTRYPOINT ["dotnet", "FacturacionService.dll"]
