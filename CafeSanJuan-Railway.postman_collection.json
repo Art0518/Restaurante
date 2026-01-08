@@ -1,0 +1,521 @@
+{
+  "info": {
+    "name": "CafeSanJuan - Microservicios Railway",
+    "_postman_id": "cafe-sanjuan-railway",
+    "description": "Colección completa de endpoints para los 4 microservicios desplegados en Railway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_seguridad",
+    "value": "https://seguridad-production-279b.up.railway.app",
+  "type": "string"
+    },
+    {
+      "key": "base_menu",
+      "value": "https://menu-production-279b.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "base_reservas",
+      "value": "https://reserva-production-279b.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "base_facturacion",
+      "value": "https://factura-production-279b.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "?? SeguridadService",
+    "item": [
+        {
+       "name": "Health Check",
+          "request": {
+          "method": "GET",
+       "header": [],
+          "url": {
+     "raw": "{{base_seguridad}}/api/usuarios",
+    "host": ["{{base_seguridad}}"],
+              "path": ["api", "usuarios"]
+         }
+        }
+        },
+        {
+    "name": "Registrar Usuario",
+          "request": {
+            "method": "POST",
+  "header": [
+          {
+                "key": "Content-Type",
+             "value": "application/json"
+         }
+   ],
+ "body": {
+    "mode": "raw",
+   "raw": "{\n  \"nombre\": \"María\",\n\"apellido\": \"González\",\n  \"email\": \"maria.gonzalez@example.com\",\n  \"contrasena\": \"Password123!\",\n  \"telefono\": \"7871234567\",\n  \"cedula\": \"0987654321\",\n  \"direccion\": \"Av. San Juan 456, San Juan, PR\",\n  \"rol\": \"Usuario\"\n}"
+      },
+            "url": {
+              "raw": "{{base_seguridad}}/api/usuarios/registrar",
+  "host": ["{{base_seguridad}}"],
+      "path": ["api", "usuarios", "registrar"]
+    }
+    }
+        },
+        {
+   "name": "Login",
+          "event": [
+   {
+              "listen": "test",
+              "script": {
+  "exec": [
+             "var jsonData = pm.response.json();",
+           "if (jsonData.token) {",
+   "    pm.environment.set('token', jsonData.token);",
+      "}"
+    ]
+       }
+            }
+        ],
+          "request": {
+            "method": "POST",
+     "header": [
+              {
+ "key": "Content-Type",
+       "value": "application/json"
+              }
+  ],
+     "body": {
+     "mode": "raw",
+   "raw": "{\n  \"email\": \"maria.gonzalez@example.com\",\n  \"contrasena\": \"Password123!\"\n}"
+        },
+            "url": {
+ "raw": "{{base_seguridad}}/api/usuarios/login",
+              "host": ["{{base_seguridad}}"],
+     "path": ["api", "usuarios", "login"]
+  }
+          }
+        },
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "method": "GET",
+  "header": [],
+            "url": {
+              "raw": "{{base_seguridad}}/api/usuarios/listar?pagina=1&tamanoPagina=10",
+        "host": ["{{base_seguridad}}"],
+              "path": ["api", "usuarios", "listar"],
+           "query": [
+       {
+      "key": "pagina",
+             "value": "1"
+        },
+  {
+                  "key": "tamanoPagina",
+    "value": "10"
+   }
+              ]
+          }
+    }
+        },
+        {
+          "name": "Obtener Usuario por ID",
+      "request": {
+      "method": "GET",
+       "header": [],
+            "url": {
+  "raw": "{{base_seguridad}}/api/usuarios/1",
+        "host": ["{{base_seguridad}}"],
+           "path": ["api", "usuarios", "1"]
+            }
+       }
+},
+    {
+     "name": "Validar Token",
+     "request": {
+  "method": "POST",
+   "header": [
+        {
+           "key": "Content-Type",
+   "value": "application/json"
+    }
+            ],
+    "body": {
+      "mode": "raw",
+       "raw": "{\n  \"token\": \"{{token}}\"\n}"
+         },
+        "url": {
+          "raw": "{{base_seguridad}}/api/usuarios/validar-token",
+   "host": ["{{base_seguridad}}"],
+     "path": ["api", "usuarios", "validar-token"]
+ }
+        }
+        }
+      ]
+    },
+    {
+ "name": "??? MenuService",
+      "item": [
+     {
+       "name": "Listar Todos los Platos",
+     "request": {
+            "method": "GET",
+       "header": [],
+     "url": {
+       "raw": "{{base_menu}}/api/platos/listar",
+       "host": ["{{base_menu}}"],
+"path": ["api", "platos", "listar"]
+            }
+  }
+     },
+        {
+ "name": "Obtener Plato por ID",
+          "request": {
+       "method": "GET",
+            "header": [],
+            "url": {
+         "raw": "{{base_menu}}/api/platos/1",
+              "host": ["{{base_menu}}"],
+       "path": ["api", "platos", "1"]
+}
+   }
+        },
+        {
+          "name": "Crear Plato",
+        "request": {
+   "method": "POST",
+            "header": [
+ {
+        "key": "Content-Type",
+              "value": "application/json"
+       }
+   ],
+ "body": {
+        "mode": "raw",
+     "raw": "{\n  \"idRestaurante\": 2,\n  \"nombre\": \"Mofongo Relleno de Camarones\",\n  \"descripcion\": \"Delicioso mofongo tradicional puertorriqueño\",\n  \"precio\": 18.99,\n  \"categoria\": \"Platos Principales\",\n  \"tipoComida\": \"Criolla\",\n  \"imagenURL\": \"https://example.com/mofongo.jpg\",\n  \"stock\": 25,\n  \"estado\": \"ACTIVO\"\n}"
+            },
+  "url": {
+      "raw": "{{base_menu}}/api/platos/crear",
+        "host": ["{{base_menu}}"],
+              "path": ["api", "platos", "crear"]
+     }
+   }
+        },
+    {
+          "name": "Listar Promociones Activas",
+   "request": {
+  "method": "GET",
+            "header": [],
+  "url": {
+       "raw": "{{base_menu}}/api/promociones/activas",
+        "host": ["{{base_menu}}"],
+  "path": ["api", "promociones", "activas"]
+  }
+          }
+        },
+        {
+          "name": "Listar Todas las Promociones",
+          "request": {
+"method": "GET",
+            "header": [],
+          "url": {
+          "raw": "{{base_menu}}/api/promociones/listar",
+     "host": ["{{base_menu}}"],
+   "path": ["api", "promociones", "listar"]
+      }
+ }
+        },
+        {
+        "name": "Crear Promoción",
+   "request": {
+      "method": "POST",
+            "header": [
+              {
+    "key": "Content-Type",
+    "value": "application/json"
+              }
+  ],
+       "body": {
+              "mode": "raw",
+  "raw": "{\n  \"idRestaurante\": 2,\n  \"nombre\": \"Descuento Black Friday\",\n  \"descripcion\": \"20% de descuento\",\n  \"porcentajeDescuento\": 20,\n  \"fechaInicio\": \"2024-11-25\",\n  \"fechaFin\": \"2024-11-30\",\n  \"activo\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_menu}}/api/promociones/crear",
+    "host": ["{{base_menu}}"],
+         "path": ["api", "promociones", "crear"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? ReservasService",
+      "item": [
+        {
+          "name": "Listar Todas las Reservas",
+ "request": {
+          "method": "GET",
+        "header": [],
+          "url": {
+              "raw": "{{base_reservas}}/api/reservas",
+              "host": ["{{base_reservas}}"],
+  "path": ["api", "reservas"]
+   }
+          }
+        },
+ {
+          "name": "Crear Reserva",
+    "request": {
+   "method": "POST",
+"header": [
+        {
+      "key": "Content-Type",
+        "value": "application/json"
+         }
+],
+  "body": {
+           "mode": "raw",
+          "raw": "{\n  \"idUsuario\": 1,\n  \"idMesa\": 5,\n  \"idRestaurante\": 2,\n  \"fechaReserva\": \"2024-12-25\",\n  \"horaReserva\": \"19:00\",\n  \"numeroPersonas\": 4,\n  \"notas\": \"Mesa cerca de la ventana\",\n  \"estado\": \"HOLD\",\n  \"metodoPago\": \"TARJETA\"\n}"
+ },
+          "url": {
+           "raw": "{{base_reservas}}/api/reservas/crear",
+              "host": ["{{base_reservas}}"],
+      "path": ["api", "reservas", "crear"]
+  }
+          }
+        },
+    {
+          "name": "Obtener Reserva por ID",
+          "request": {
+  "method": "GET",
+ "header": [],
+            "url": {
+       "raw": "{{base_reservas}}/api/reservas/1",
+              "host": ["{{base_reservas}}"],
+              "path": ["api", "reservas", "1"]
+       }
+          }
+    },
+        {
+          "name": "Filtrar Reservas por Usuario",
+   "request": {
+      "method": "GET",
+    "header": [],
+      "url": {
+            "raw": "{{base_reservas}}/api/reservas/filtrar?idUsuario=1",
+ "host": ["{{base_reservas}}"],
+  "path": ["api", "reservas", "filtrar"],
+   "query": [
+       {
+      "key": "idUsuario",
+    "value": "1"
+         }
+              ]
+       }
+          }
+        },
+   {
+       "name": "Reservas Confirmadas de Usuario",
+  "request": {
+  "method": "GET",
+      "header": [],
+       "url": {
+       "raw": "{{base_reservas}}/api/reservas/confirmadas/1",
+              "host": ["{{base_reservas}}"],
+  "path": ["api", "reservas", "confirmadas", "1"]
+            }
+          }
+        },
+  {
+    "name": "Actualizar Estado de Reserva",
+          "request": {
+            "method": "PUT",
+     "header": [
+              {
+ "key": "Content-Type",
+  "value": "application/json"
+              }
+      ],
+         "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idReserva\": 1,\n  \"estado\": \"CONFIRMADA\",\n  \"metodoPago\": \"TARJETA\"\n}"
+      },
+       "url": {
+       "raw": "{{base_reservas}}/api/reservas/estado",
+ "host": ["{{base_reservas}}"],
+              "path": ["api", "reservas", "estado"]
+            }
+          }
+        },
+      {
+          "name": "Listar Restaurantes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+   "raw": "{{base_reservas}}/api/reservas/restaurantes",
+        "host": ["{{base_reservas}}"],
+       "path": ["api", "reservas", "restaurantes"]
+          }
+}
+        },
+     {
+          "name": "Listar Mesas por Restaurante",
+          "request": {
+            "method": "GET",
+            "header": [],
+  "url": {
+      "raw": "{{base_reservas}}/api/reservas/mesas/2",
+        "host": ["{{base_reservas}}"],
+   "path": ["api", "reservas", "mesas", "2"]
+      }
+          }
+        }
+      ]
+    },
+    {
+      "name": "?? FacturacionService",
+      "item": [
+        {
+          "name": "Listar Todas las Facturas",
+    "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_facturacion}}/api/facturacion/listar",
+        "host": ["{{base_facturacion}}"],
+              "path": ["api", "facturacion", "listar"]
+            }
+ }
+        },
+        {
+      "name": "Obtener Factura por ID",
+"request": {
+       "method": "GET",
+            "header": [],
+        "url": {
+     "raw": "{{base_facturacion}}/api/facturacion/1",
+     "host": ["{{base_facturacion}}"],
+    "path": ["api", "facturacion", "1"]
+      }
+      }
+        },
+        {
+   "name": "Obtener Factura Detallada",
+          "request": {
+            "method": "GET",
+    "header": [],
+      "url": {
+      "raw": "{{base_facturacion}}/api/facturacion/1/detallada",
+        "host": ["{{base_facturacion}}"],
+  "path": ["api", "facturacion", "1", "detallada"]
+    }
+          }
+        },
+        {
+  "name": "Listar Facturas de Usuario",
+  "request": {
+            "method": "GET",
+         "header": [],
+   "url": {
+  "raw": "{{base_facturacion}}/api/facturacion/usuario/1",
+         "host": ["{{base_facturacion}}"],
+ "path": ["api", "facturacion", "usuario", "1"]
+   }
+          }
+    },
+        {
+          "name": "Generar Factura Básica",
+ "request": {
+            "method": "POST",
+            "header": [
+           {
+            "key": "Content-Type",
+     "value": "application/json"
+          }
+            ],
+          "body": {
+    "mode": "raw",
+        "raw": "{\n  \"idUsuario\": 1,\n  \"idReserva\": 1,\n  \"subtotal\": 100.00,\n  \"metodoPago\": \"TARJETA\"\n}"
+     },
+       "url": {
+          "raw": "{{base_facturacion}}/api/facturacion/generar",
+           "host": ["{{base_facturacion}}"],
+   "path": ["api", "facturacion", "generar"]
+   }
+          }
+        },
+        {
+"name": "Generar Factura desde Carrito",
+        "request": {
+       "method": "POST",
+            "header": [
+              {
+         "key": "Content-Type",
+  "value": "application/json"
+           }
+         ],
+            "body": {
+              "mode": "raw",
+  "raw": "{\n  \"idUsuario\": 1,\n  \"reservasIds\": \"1,2,3\",\n  \"promocionId\": 1,\n  \"metodoPago\": \"TARJETA\"\n}"
+        },
+            "url": {
+       "raw": "{{base_facturacion}}/api/facturacion/generar-carrito",
+         "host": ["{{base_facturacion}}"],
+     "path": ["api", "facturacion", "generar-carrito"]
+     }
+          }
+        },
+        {
+          "name": "Marcar Factura como Pagada",
+          "request": {
+      "method": "POST",
+            "header": [
+         {
+       "key": "Content-Type",
+            "value": "application/json"
+      }
+            ],
+            "body": {
+      "mode": "raw",
+        "raw": "{\n  \"idFactura\": 1,\n  \"metodoPago\": \"EFECTIVO\",\n  \"fechaPago\": \"2024-12-20\"\n}"
+       },
+            "url": {
+         "raw": "{{base_facturacion}}/api/facturacion/marcar-pagada",
+      "host": ["{{base_facturacion}}"],
+    "path": ["api", "facturacion", "marcar-pagada"]
+    }
+       }
+        },
+        {
+       "name": "Anular Factura",
+ "request": {
+      "method": "PUT",
+ "header": [
+       {
+   "key": "Content-Type",
+             "value": "application/json"
+              }
+      ],
+         "body": {
+     "mode": "raw",
+            "raw": "{\n  \"motivo\": \"Cliente solicitó cancelación\"\n}"
+      },
+      "url": {
+        "raw": "{{base_facturacion}}/api/facturacion/1/anular",
+    "host": ["{{base_facturacion}}"],
+           "path": ["api", "facturacion", "1", "anular"]
+       }
+          }
+        }
+      ]
+    }
+  ]
+}
