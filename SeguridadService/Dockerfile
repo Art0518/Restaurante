@@ -11,7 +11,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Set environment variables for Railway
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
+# Railway proporciona la variable PORT automáticamente
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080}
 
 ENTRYPOINT ["dotnet", "SeguridadService.dll"]

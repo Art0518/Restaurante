@@ -18,7 +18,7 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 # Set environment variables for Railway
-ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT}
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://0.0.0.0:${PORT:-8080}
 
 ENTRYPOINT ["dotnet", "MenuService.dll"]
