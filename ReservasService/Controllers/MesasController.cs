@@ -222,36 +222,142 @@ namespace ReservasService.Controllers
         }
 
         // ============================================================
-        // ACTUALIZAR ESTADO DE MESA
+        // GESTIONAR MESA (CREAR O ACTUALIZAR) - VERSIÓN MEJORADA
         // ============================================================
-        [HttpPut]
-        [Route("{id}/estado")]
-        public ActionResult<ApiResponse<string>> ActualizarEstado(int id, [FromBody] ActualizarEstadoMesaDto request)
+        [HttpPost]
+        [Route("admin/gestionar")]
+        public ActionResult<ApiResponse<string>> GestionarMesaAdmin([FromBody] GestionarMesaAdminDto request)
         {
             try
             {
-                _logger.LogInformation($"REST: Actualizando estado de mesa {id}");
+                _logger.LogInformation($"REST: Gestionando mesa Admin - Operacion: {(request.IdMesa == null || request.IdMesa == 0 ? "CREAR" : "ACTUALIZAR")}");
 
-                if (id <= 0)
-                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "ID de mesa no válido" });
+                // === VALIDACIONES ESTRICTAS ===
 
-                if (string.IsNullOrEmpty(request.Estado))
-                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "Debe especificar el estado" });
+                // Validar IdRestaurante (obligatorio)
+                if (request.IdRestaurante <= 0)
+                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "Debe seleccionar un restaurante válido" });
 
-                _mesaDAO.ActualizarEstado(id, request.Estado);
-
-                return Ok(new ApiResponse<string>
+                // Validar TipoMesa (solo Interior o Exterior)
+                if (string.IsNullOrWhiteSpace(request.TipoMesa) ||
+        (!request.TipoMesa.Equals("Interior", StringComparison.OrdinalIgnoreCase) &&
+      !request.TipoMesa.Equals("Exterior", StringComparison.OrdinalIgnoreCase)))
                 {
-                    Success = true,
-                    Mensaje = "Estado actualizado correctamente"
-                });
+                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "El tipo de mesa debe ser 'Interior' o 'Exterior'" });
+                }
+
+                // Validar Capacidad (entre 2 y 6 personas)
+                if (request.Capacidad < 2 || request.Capacidad > 6)
+                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "La capacidad debe estar entre 2 y 6 personas" });
+
+                // Validar Precio (opcional, pero si se envía debe ser positivo)
+                if (request.Precio.HasValue && request.Precio.Value <= 0)
+                    return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "El precio debe ser mayor a 0" });
+
+                bool esCreacion = (request.IdMesa == null || request.IdMesa == 0);
+
+                if (esCreacion)
+                {
+                    // === CREAR MESA ===
+
+                    // Validar NumeroMesa (obligatorio para crear)
+                    if (request.NumeroMesa <= 0)
+                        return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "Debe indicar el número de la mesa" });
+
+                    // Verificar que el número de mesa no se repita según la zona
+                    if (VerificarNumeroMesaExiste(request.IdRestaurante, request.NumeroMesa, request.TipoMesa))
+                    {
+                        return BadRequest(new ApiResponse<string> {
+                            Success = false,
+                            Mensaje = $"Ya existe una mesa número {request.NumeroMesa} en la zona {request.TipoMesa}"
+                        });
+                    }
+
+                    // Para creación, siempre ACTIVA
+                    string estado = "DISPONIBLE";
+
+                    _mesaDAO.GestionarMesa(
+                        "INSERT",
+                        null, // IdMesa es null para INSERT
+                        request.IdRestaurante,
+                        request.NumeroMesa,
+                        request.TipoMesa,
+                        request.Capacidad,
+                        request.Precio ?? 0,
+                        request.ImagenURL ?? "",
+                        estado
+                    );
+
+                    return Ok(new ApiResponse<string>
+                    {
+                        Success = true,
+                        Mensaje = $"Mesa {request.NumeroMesa} creada exitosamente en zona {request.TipoMesa}"
+                    });
+                }
+                else
+                {
+                    // === ACTUALIZAR MESA ===
+
+                    // Verificar que la mesa existe
+                    if (!VerificarMesaExiste(request.IdMesa.Value))
+                    {
+                        return NotFound(new ApiResponse<string> { Success = false, Mensaje = "Mesa no encontrada" });
+                    }
+
+                    // Si se cambia el número de mesa, verificar que no existe en esa zona
+                    if (request.NumeroMesa > 0)
+                    {
+                        if (VerificarNumeroMesaExiste(request.IdRestaurante, request.NumeroMesa, request.TipoMesa, request.IdMesa.Value))
+                        {
+                            return BadRequest(new ApiResponse<string> {
+                                Success = false,
+                                Mensaje = $"Ya existe otra mesa número {request.NumeroMesa} en la zona {request.TipoMesa}"
+                            });
+                        }
+                    }
+
+                    // Validar Estado (solo al actualizar)
+                    var estadosPermitidos = new[] { "DISPONIBLE", "OCUPADA", "INACTIVA" };
+                    if (!string.IsNullOrEmpty(request.Estado) && !estadosPermitidos.Contains(request.Estado.ToUpper()))
+                    {
+                        return BadRequest(new ApiResponse<string> {
+                            Success = false,
+                            Mensaje = "El estado debe ser 'DISPONIBLE', 'OCUPADA' o 'INACTIVA'"
+                        });
+                    }
+
+                    // Obtener datos actuales de la mesa
+                    var mesaActual = ObtenerMesaActual(request.IdMesa.Value);
+                    if (mesaActual == null)
+                    {
+                        return NotFound(new ApiResponse<string> { Success = false, Mensaje = "Mesa no encontrada" });
+                    }
+
+                    _mesaDAO.GestionarMesa(
+                       "UPDATE",
+                        request.IdMesa.Value,
+                       request.IdRestaurante,
+                     request.NumeroMesa > 0 ? request.NumeroMesa : mesaActual.NumeroMesa,
+                         request.TipoMesa,
+                  request.Capacidad,
+        request.Precio ?? mesaActual.Precio,
+      string.IsNullOrWhiteSpace(request.ImagenURL) ? mesaActual.ImagenURL : request.ImagenURL,
+         string.IsNullOrWhiteSpace(request.Estado) ? mesaActual.Estado : request.Estado.ToUpper()
+             );
+
+           return Ok(new ApiResponse<string>
+      {
+   Success = true,
+        Mensaje = $"Mesa {request.IdMesa} actualizada exitosamente"
+ });
+                }
             }
-            catch (Exception ex)
+ catch (Exception ex)
             {
-                _logger.LogError($"Error al actualizar estado: {ex.Message}");
-                return StatusCode(500, new ApiResponse<string> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
-        }
+    _logger.LogError($"Error al gestionar mesa: {ex.Message}");
+  return StatusCode(500, new ApiResponse<string> { Success = false, Mensaje = $"Error: {ex.Message}" });
+         }
+  }
 
         // ============================================================
         // ELIMINAR (INACTIVAR) MESA
@@ -420,12 +526,246 @@ namespace ReservasService.Controllers
             public string Estado { get; set; } = "";
         }
 
+        // ============================================================
+        // DTOs PARA ADMINISTRACIÓN DE MESAS
+        // ============================================================
+        
+        public class GestionarMesaAdminDto
+        {
+     public int? IdMesa { get; set; } // null para crear, valor para actualizar
+            public int IdRestaurante { get; set; }
+ public int NumeroMesa { get; set; }
+            public string TipoMesa { get; set; } = ""; // Solo "Interior" o "Exterior"
+      public int Capacidad { get; set; } // Entre 2 y 6
+        public decimal? Precio { get; set; }
+   public string? ImagenURL { get; set; }
+      public string? Estado { get; set; } // Solo al actualizar: DISPONIBLE, OCUPADA, INACTIVA
+ }
+
+        public class ActualizarImagenMesaDto
+        {
+         public string? ImagenURL { get; set; } // null o vacío para eliminar imagen
+  }
+
         // Respuesta genérica para APIs REST
         public class ApiResponse<T>
         {
             public bool Success { get; set; }
             public string Mensaje { get; set; } = "";
             public T? Data { get; set; }
+        }
+
+        // ============================================================
+        // ELIMINAR/CAMBIAR FOTO DE MESA
+        // ============================================================
+        [HttpPut]
+     [Route("{id}/imagen")]
+        public ActionResult<ApiResponse<string>> ActualizarImagenMesa(int id, [FromBody] ActualizarImagenMesaDto request)
+   {
+  try
+  {
+_logger.LogInformation($"REST: Actualizando imagen de mesa {id}");
+
+   if (id <= 0)
+   return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "ID de mesa no válido" });
+
+           // Verificar que la mesa existe
+      if (!VerificarMesaExiste(id))
+   {
+      return NotFound(new ApiResponse<string> { Success = false, Mensaje = "Mesa no encontrada" });
+                }
+
+      // Obtener datos actuales
+        var mesaActual = ObtenerMesaActual(id);
+       if (mesaActual == null)
+        {
+         return NotFound(new ApiResponse<string> { Success = false, Mensaje = "Mesa no encontrada" });
+          }
+
+         // Actualizar solo la imagen
+              _mesaDAO.GestionarMesa(
+       "UPDATE",
+          id,
+ mesaActual.IdRestaurante,
+  mesaActual.NumeroMesa,
+          mesaActual.TipoMesa,
+         mesaActual.Capacidad,
+              mesaActual.Precio,
+   request.ImagenURL ?? "", // Si es null o vacío, se elimina la imagen
+              mesaActual.Estado
+         );
+
+     string mensaje = string.IsNullOrWhiteSpace(request.ImagenURL) 
+        ? "Imagen eliminada correctamente" 
+        : "Imagen actualizada correctamente";
+
+         return Ok(new ApiResponse<string>
+     {
+        Success = true,
+      Mensaje = mensaje
+     });
+       }
+   catch (Exception ex)
+     {
+    _logger.LogError($"Error al actualizar imagen: {ex.Message}");
+   return StatusCode(500, new ApiResponse<string> { Success = false, Mensaje = $"Error: {ex.Message}" });
+  }
+        }
+
+        // ============================================================
+     // MÉTODOS AUXILIARES PRIVADOS
+        // ============================================================
+        private bool VerificarNumeroMesaExiste(int idRestaurante, int numeroMesa, string tipoMesa, int? excluyeIdMesa = null)
+        {
+         try
+ {
+              DataTable mesas = _mesaDAO.ListarMesas();
+  
+     foreach (DataRow row in mesas.Rows)
+          {
+              int idMesa = Convert.ToInt32(row["IdMesa"]);
+int idRest = Convert.ToInt32(row["IdRestaurante"]);
+               int numMesa = Convert.ToInt32(row["NumeroMesa"]);
+     string tipo = row["TipoMesa"]?.ToString()?.Trim() ?? "";
+
+    // Excluir la mesa actual si se está actualizando
+        if (excluyeIdMesa.HasValue && idMesa == excluyeIdMesa.Value)
+       continue;
+
+           if (idRest == idRestaurante && 
+              numMesa == numeroMesa && 
+ tipo.Equals(tipoMesa, StringComparison.OrdinalIgnoreCase))
+             {
+ return true; // Ya existe
+        }
+    }
+
+        return false; // No existe
+      }
+            catch (Exception)
+  {
+   return true; // En caso de error, asumir que existe para evitar duplicados
+  }
+        }
+
+        private bool VerificarMesaExiste(int idMesa)
+        {
+            try
+  {
+     DataTable mesas = _mesaDAO.ListarMesas();
+         DataRow[] filtro = mesas.Select($"IdMesa = {idMesa}");
+        return filtro.Length > 0;
+       }
+    catch (Exception)
+            {
+                return false;
+       }
+     }
+
+  private Mesa? ObtenerMesaActual(int idMesa)
+        {
+            try
+{
+                DataTable mesas = _mesaDAO.ListarMesas();
+      DataRow[] filtro = mesas.Select($"IdMesa = {idMesa}");
+        
+          if (filtro.Length == 0) return null;
+
+      var row = filtro[0];
+             return new Mesa
+       {
+         IdMesa = Convert.ToInt32(row["IdMesa"]),
+        IdRestaurante = Convert.ToInt32(row["IdRestaurante"]),
+   NumeroMesa = Convert.ToInt32(row["NumeroMesa"]),
+        TipoMesa = row["TipoMesa"]?.ToString() ?? "",
+    Capacidad = Convert.ToInt32(row["Capacidad"]),
+            Precio = row["Precio"] != DBNull.Value ? Convert.ToDecimal(row["Precio"]) : 0m,
+         ImagenURL = row["ImagenURL"]?.ToString() ?? "",
+          Estado = row["Estado"]?.ToString() ?? ""
+          };
+       }
+            catch (Exception)
+            {
+                return null;
+   }
+        }
+
+        // ============================================================
+     // LISTAR MESAS PARA ADMINISTRACIÓN (CON FILTROS)
+        // ============================================================
+       [HttpGet]
+      [Route("admin/listar")]
+ public ActionResult<ApiResponse<List<object>>> ListarMesasAdmin(
+         [FromQuery] int? idRestaurante = null,
+     [FromQuery] string? tipoMesa = null,
+    [FromQuery] string? estado = null,
+    [FromQuery] int? capacidad = null)
+  {
+        try
+          {
+    _logger.LogInformation("REST: Listando mesas para administración con filtros");
+        
+     DataTable todasMesas = _mesaDAO.ListarMesas();
+  string filtro = "";
+
+       // Construir filtros
+      if (idRestaurante.HasValue)
+  filtro += $"IdRestaurante = {idRestaurante.Value}";
+
+    if (!string.IsNullOrEmpty(tipoMesa))
+          {
+      filtro += (filtro != "" ? " AND " : "") + $"TipoMesa = '{tipoMesa}'";
+  }
+
+       if (!string.IsNullOrEmpty(estado))
+    {
+      filtro += (filtro != "" ? " AND " : "") + $"Estado = '{estado}'";
+   }
+
+       if (capacidad.HasValue)
+        {
+   filtro += (filtro != "" ? " AND " : "") + $"Capacidad = {capacidad.Value}";
+         }
+
+     DataRow[] mesasFiltradas = string.IsNullOrEmpty(filtro)
+       ? todasMesas.Select()
+         : todasMesas.Select(filtro);
+
+    // Convertir a lista de objetos con información adicional
+   var listaMesas = new List<object>();
+            foreach (DataRow row in mesasFiltradas)
+      {
+ listaMesas.Add(new
+ {
+      IdMesa = row["IdMesa"],
+        IdRestaurante = row["IdRestaurante"],
+      NumeroMesa = row["NumeroMesa"],
+           TipoMesa = row["TipoMesa"],
+         Capacidad = row["Capacidad"],
+ Precio = row["Precio"] != DBNull.Value ? row["Precio"] : null,
+         ImagenURL = row["ImagenURL"] != DBNull.Value ? row["ImagenURL"] : null,
+    Estado = row["Estado"],
+        // Información adicional
+           TieneImagen = row["ImagenURL"] != DBNull.Value && !string.IsNullOrWhiteSpace(row["ImagenURL"].ToString()),
+          PrecioFormateado = row["Precio"] != DBNull.Value ? $"${row["Precio"]:F2}" : "Sin precio"
+   });
+      }
+
+      // Ordenar por TipoMesa y luego por NumeroMesa
+        var mesasOrdenadas = listaMesas.OrderBy(m => ((dynamic)m).TipoMesa).ThenBy(m => ((dynamic)m).NumeroMesa);
+
+        return Ok(new ApiResponse<List<object>>
+       {
+         Success = true,
+      Mensaje = $"Se encontraron {listaMesas.Count} mesas",
+       Data = mesasOrdenadas.ToList()
+  });
+   }
+   catch (Exception ex)
+   {
+    _logger.LogError($"Error al listar mesas admin: {ex.Message}");
+     return StatusCode(500, new ApiResponse<List<object>> { Success = false, Mensaje = $"Error: {ex.Message}" });
+  }
         }
     }
 }
