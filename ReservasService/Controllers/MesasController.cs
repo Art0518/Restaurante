@@ -287,66 +287,86 @@ _logger.LogError($"Error al eliminar mesa: {ex.Message}");
     // ============================================================
  [HttpGet]
   [Route("{idMesa}/disponibilidad")]
-     public ActionResult<ApiResponse<List<object>>> ObtenerDisponibilidadMesa(int idMesa, [FromQuery] DateTime fecha)
-        {
-  try
-       {
-    _logger.LogInformation($"REST: Obteniendo disponibilidad de mesa {idMesa} para {fecha:yyyy-MM-dd}");
+     public ActionResult<ApiResponse<object>> ObtenerDisponibilidadMesa(int idMesa, [FromQuery] DateTime fecha, [FromQuery] string? hora = null)
+ {
+ try
+ {
+ _logger.LogInformation($"REST: Obteniendo disponibilidad de mesa {idMesa} para {fecha:yyyy-MM-dd} hora: {hora}");
 
-  if (idMesa <= 0)
-      return BadRequest(new ApiResponse<List<object>> { Success = false, Mensaje = "ID de mesa no válido" });
+ if (idMesa <=0)
+ return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de mesa no válido" });
 
-  DataTable dt = _mesaDAO.ObtenerDisponibilidad(idMesa, fecha);
+ // Si se solicita una hora específica, devolver disponibilidad para esa fecha+hora
+ if (!string.IsNullOrWhiteSpace(hora))
+ {
+ // Intentar parsear la hora (acepta "HH:mm" o "HH:mm:ss")
+ if (!TimeSpan.TryParse(hora, out TimeSpan ts))
+ {
+ return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "Formato de hora inválido. Use HH:mm o HH:mm:ss" });
+ }
+
+ bool disponible = _mesaDAO.EstaDisponibleEnHora(idMesa, fecha.Date, ts);
+
+ return Ok(new ApiResponse<object>
+ {
+ Success = true,
+ Mensaje = "Disponibilidad verificada correctamente",
+ Data = new { Disponible = disponible }
+ });
+ }
+
+ // Comportamiento anterior: devolver lista de horas ya reservadas en la fecha
+ DataTable dt = _mesaDAO.ObtenerDisponibilidad(idMesa, fecha);
 
  var listaHoras = new List<object>();
 
-    foreach (DataRow row in dt.Rows)
-  {
-     string valor = row["Hora"]?.ToString()?.Trim() ?? "";
-        string horaSolo = valor;
+ foreach (DataRow row in dt.Rows)
+ {
+ string valor = row["Hora"]?.ToString()?.Trim() ?? "";
+ string horaSolo = valor;
 
-      // Si por alguna razón el SP devuelve DATETIME, se corrige aquí
-   if (valor.Contains(" "))
-         {
-       horaSolo = valor.Split(' ')[1]; // extrae solo HH:mm:ss
-   }
+ // Si por alguna razón el SP devuelve DATETIME, se corrige aquí
+ if (valor.Contains(" "))
+ {
+ horaSolo = valor.Split(' ')[1]; // extrae solo HH:mm:ss
+ }
 
-    listaHoras.Add(new { Hora = horaSolo });
-  }
+ listaHoras.Add(new { Hora = horaSolo });
+ }
 
-     return Ok(new ApiResponse<List<object>>
-  {
-         Success = true,
-        Mensaje = "Disponibilidad obtenida correctamente",
-    Data = listaHoras
-    });
-      }
-            catch (Exception ex)
+ return Ok(new ApiResponse<object>
+ {
+ Success = true,
+ Mensaje = "Disponibilidad obtenida correctamente",
+ Data = listaHoras
+ });
+ }
+ catch (Exception ex)
  {
  _logger.LogError($"Error al obtener disponibilidad: {ex.Message}");
- return StatusCode(500, new ApiResponse<List<object>> { Success = false, Mensaje = $"Error: {ex.Message}" });
-   }
-        }
-    }
+ return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
+ }
+ }
+ }
 
-    // ============================================================
-    // DTOs para las solicitudes
-    // ============================================================
+ // ============================================================
+ // DTOs para las solicitudes
+ // ============================================================
 
-    public class GestionarMesaDto
-    {
-    public int? IdMesa { get; set; }  // Cambiado a nullable
-    public int IdRestaurante { get; set; }
-    public int NumeroMesa { get; set; }
-    public string TipoMesa { get; set; } = "";
-    public int Capacidad { get; set; }
-    public decimal? Precio { get; set; }
-    public string? ImagenURL { get; set; }
-    public string Estado { get; set; } = "";
-    }
+ public class GestionarMesaDto
+ {
+ public int? IdMesa { get; set; } // Cambiado a nullable
+ public int IdRestaurante { get; set; }
+ public int NumeroMesa { get; set; }
+ public string TipoMesa { get; set; } = "";
+ public int Capacidad { get; set; }
+ public decimal? Precio { get; set; }
+ public string? ImagenURL { get; set; }
+ public string Estado { get; set; } = "";
+ }
 
-    public class ActualizarEstadoMesaDto
-  {
-        public string Estado { get; set; } = "";
-    }
+ public class ActualizarEstadoMesaDto
+ {
+ public string Estado { get; set; } = "";
+ }
 }

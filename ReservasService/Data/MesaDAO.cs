@@ -133,8 +133,39 @@ namespace ReservasService.Data
         }
 
         // =========================================================
+        // Verifica si la mesa está disponible para una fecha y hora específicas
+        // Retorna true si NO existe una reserva en esa fecha+hora con estados conflictivos
+        // =========================================================
+        public bool EstaDisponibleEnHora(int idMesa, DateTime fecha, TimeSpan hora)
+        {
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                // Comparamos la representación de hora como HH:mm:ss para mayor compatibilidad
+                string sql = @"
+ SELECT COUNT(1)
+ FROM reservas.Reserva
+ WHERE IdMesa = @IdMesa
+ AND Fecha = @Fecha
+ AND CONVERT(VARCHAR(8), Hora,108) = @HoraStr
+ AND Estado IN ('PENDIENTE','CONFIRMADA','COMPLETADA','HOLD')
+ ";
+
+                SqlCommand cmd = new SqlCommand(sql, cn);
+                cmd.Parameters.AddWithValue("@IdMesa", idMesa);
+                cmd.Parameters.AddWithValue("@Fecha", fecha.Date);
+                // Hora en formato HH:mm:ss
+                cmd.Parameters.AddWithValue("@HoraStr", hora.ToString("hh\\:mm\\:ss"));
+
+                cn.Open();
+                int count = Convert.ToInt32(cmd.ExecuteScalar());
+
+                return count == 0; // true -> disponible
+            }
+        }
+
+        // =========================================================
         // EJECUTAR CONSULTA SQL DIRECTA
-// =========================================================
+        // =========================================================
         public DataTable EjecutarConsulta(string sql)
         {
             using (SqlConnection cn = new SqlConnection(_connectionString))
@@ -152,21 +183,21 @@ namespace ReservasService.Data
         // =========================================================
         public void ActualizarEstado(int idMesa, string estado)
         {
-      using (SqlConnection cn = new SqlConnection(_connectionString))
-      {
-     SqlCommand cmd = new SqlCommand("usp_Mesa_ActualizarEstado", cn);
-       cmd.CommandType = CommandType.StoredProcedure;
+            using (SqlConnection cn = new SqlConnection(_connectionString))
+            {
+                SqlCommand cmd = new SqlCommand("usp_Mesa_ActualizarEstado", cn);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-       cmd.Parameters.AddWithValue("@IdMesa", idMesa);
-     cmd.Parameters.AddWithValue("@NuevoEstado", estado);
+                cmd.Parameters.AddWithValue("@IdMesa", idMesa);
+                cmd.Parameters.AddWithValue("@NuevoEstado", estado);
 
- cn.Open();
-       cmd.ExecuteNonQuery();
-  }
+                cn.Open();
+                cmd.ExecuteNonQuery();
+            }
         }
 
         // =========================================================
-// GESTIONAR MESA (CREAR O ACTUALIZAR)
+        // GESTIONAR MESA (CREAR O ACTUALIZAR)
         // =========================================================
         public void GestionarMesa(string operacion, int? idMesa, int idRestaurante, int numeroMesa,
          string tipoMesa, int capacidad, decimal? precio, string imagenURL, string estado)
