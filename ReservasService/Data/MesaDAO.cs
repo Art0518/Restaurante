@@ -35,8 +35,9 @@ namespace ReservasService.Data
 
         // =========================================================
         // LISTAR MESAS POR RESTAURANTE
+        // Ahora acepta un parámetro opcional `tipo` para filtrar por TipoMesa (Interior/Exterior)
         // =========================================================
-        public List<Mesa> ListarMesasPorRestaurante(int idRestaurante)
+        public List<Mesa> ListarMesasPorRestaurante(int idRestaurante, string? tipo = null)
         {
             List<Mesa> mesas = new List<Mesa>();
 
@@ -45,11 +46,23 @@ namespace ReservasService.Data
                 string query = @"
    SELECT IdMesa, IdRestaurante, NumeroMesa, TipoMesa, Capacidad, Precio, ImagenURL, Estado
      FROM reservas.Mesa
- WHERE IdRestaurante = @IdRestaurante AND Estado = 'DISPONIBLE'
- ORDER BY NumeroMesa";
+ WHERE IdRestaurante = @IdRestaurante AND Estado = 'DISPONIBLE'";
+
+                if (!string.IsNullOrWhiteSpace(tipo))
+                {
+                    // Filtrar por tipo de mesa de forma case-insensitive
+                    query += " AND UPPER(LTRIM(RTRIM(TipoMesa))) = UPPER(LTRIM(RTRIM(@TipoMesa)))";
+                }
+
+                query += "\n ORDER BY NumeroMesa";
 
                 SqlCommand cmd = new SqlCommand(query, cn);
                 cmd.Parameters.AddWithValue("@IdRestaurante", idRestaurante);
+
+                if (!string.IsNullOrWhiteSpace(tipo))
+                {
+                    cmd.Parameters.AddWithValue("@TipoMesa", tipo.Trim());
+                }
 
                 cn.Open();
                 using (SqlDataReader reader = cmd.ExecuteReader())
