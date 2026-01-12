@@ -559,35 +559,28 @@ _logger.LogError($"Error al obtener restaurantes: {ex.Message}");
         public ActionResult<ApiResponse<List<Mesa>>> ObtenerMesasPorRestaurante(int idRestaurante, [FromQuery] string? tipo = null)
         {
  try
-    {
-        _logger.LogInformation($"REST: Obteniendo mesas del restaurante {idRestaurante} (tipo: {tipo})");
-
-                if (idRestaurante <= 0)
-      return BadRequest(new ApiResponse<List<Mesa>> { Success = false, Mensaje = "ID de restaurante no válido" });
-
-     var mesas = _mesaDAO.ListarMesasPorRestaurante(idRestaurante);
-
- // Si se especificó tipo (ej: "INTERIOR" o "EXTERIOR"), filtrar localmente
- if (!string.IsNullOrWhiteSpace(tipo))
  {
- var tipoTrim = tipo.Trim();
- mesas = mesas.FindAll(m => !string.IsNullOrEmpty(m.TipoMesa) && m.TipoMesa.Trim().Equals(tipoTrim, StringComparison.OrdinalIgnoreCase));
- }
+ _logger.LogInformation($"REST: Obteniendo mesas del restaurante {idRestaurante} (tipo: {tipo})");
 
-       return Ok(new ApiResponse<List<Mesa>>
-   {
+ if (idRestaurante <=0)
+ return BadRequest(new ApiResponse<List<Mesa>> { Success = false, Mensaje = "ID de restaurante no válido" });
+
+ // Pasar el parámetro tipo al DAO para que haga el filtrado en SQL
+ var mesas = _mesaDAO.ListarMesasPorRestaurante(idRestaurante, tipo);
+
+ return Ok(new ApiResponse<List<Mesa>>
+ {
  Success = true,
-     Mensaje = "Mesas obtenidas correctamente",
-  Data = mesas
-     });
-            }
-catch (Exception ex)
-    {
-      _logger.LogError($"Error al obtener mesas: {ex.Message}");
-     return StatusCode(500, new ApiResponse<List<Mesa>> { Success = false, Mensaje = $"Error: {ex.Message}" });
-   }
+ Mensaje = "Mesas obtenidas correctamente",
+ Data = mesas
+ });
+ }
+ catch (Exception ex)
+ {
+ _logger.LogError($"Error al obtener mesas: {ex.Message}");
+ return StatusCode(500, new ApiResponse<List<Mesa>> { Success = false, Mensaje = $"Error: {ex.Message}" });
+ }
      }
-    }
 
     // ============================================================
     // DTOs para las solicitudes
@@ -637,3 +630,51 @@ public int IdReserva { get; set; }
    public T? Data { get; set; }
   }
 }
+
+// ============================================================
+// OBTENER HORAS OCUPADAS DE UNA MESA POR FECHA
+// GET: /api/reservas/mesas/{idMesa}/ocupadas?fecha=YYYY-MM-DD
+// Si no se envía fecha, se usa la fecha de hoy (UTC)
+// ============================================================
+[HttpGet]
+[Route("mesas/{idMesa}/ocupadas")]
+public ActionResult<ApiResponse<List<string>>> ObtenerHorasOcupadas(int idMesa, [FromQuery] string? fecha = null)
+{
+ try
+ {
+ _logger.LogInformation($"REST: Obteniendo horas ocupadas para mesa {idMesa} (fecha: {fecha})");
+
+ if (idMesa <=0)
+ return BadRequest(new ApiResponse<List<string>> { Success = false, Mensaje = "ID de mesa no válido" });
+
+ DateTime fechaConsulta;
+ if (string.IsNullOrWhiteSpace(fecha))
+ {
+ fechaConsulta = DateTime.UtcNow.Date;
+ }
+ else
+ {
+ if (!DateTime.TryParse(fecha, out fechaConsulta))
+ return BadRequest(new ApiResponse<List<string>> { Success = false, Mensaje = "Formato de fecha inválido. Use YYYY-MM-DD" });
+
+ fechaConsulta = DateTime.SpecifyKind(fechaConsulta.Date, DateTimeKind.Unspecified);
+ }
+
+ var dt = _mesaDAO.ObtenerDisponibilidad(idMesa, fechaConsulta);
+
+ var horas = new List<string>();
+ foreach (DataRow row in dt.Rows)
+ {
+ // columna 'Hora' retorna HH:mm:ss (por el CONVERT en DAO)
+ var hora = row["Hora"]?.ToString();
+ if (!string.IsNullOrWhiteSpace(hora)) horas.Add(hora!);
+ }
+
+ return Ok(new ApiResponse<List<string>> { Success = true, Mensaje = "Horas ocupadas obtenidas", Data = horas });
+ }
+ catch (Exception ex)
+ {
+ _logger.LogError($"Error al obtener horas ocupadas: {ex.Message}");
+ return StatusCode(500, new ApiResponse<List<string>> { Success = false, Mensaje = $"Error: {ex.Message}" });
+ }
+ }
