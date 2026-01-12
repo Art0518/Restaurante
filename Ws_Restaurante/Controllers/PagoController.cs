@@ -7,8 +7,6 @@ using System.Web.Http.Cors;
 
 namespace Ws_Restaurante.Controllers
 {
-
-    [EnableCors(origins: "*", headers: "*", methods: "*")]
     [RoutePrefix("api/pagos")]
     public class PagoController : ApiController
     {
