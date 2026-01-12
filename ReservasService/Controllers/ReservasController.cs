@@ -556,16 +556,23 @@ _logger.LogError($"Error al obtener restaurantes: {ex.Message}");
 
         [HttpGet]
   [Route("mesas/{idRestaurante}")]
-        public ActionResult<ApiResponse<List<Mesa>>> ObtenerMesasPorRestaurante(int idRestaurante)
+        public ActionResult<ApiResponse<List<Mesa>>> ObtenerMesasPorRestaurante(int idRestaurante, [FromQuery] string? tipo = null)
         {
  try
     {
-        _logger.LogInformation($"REST: Obteniendo mesas del restaurante {idRestaurante}");
+        _logger.LogInformation($"REST: Obteniendo mesas del restaurante {idRestaurante} (tipo: {tipo})");
 
                 if (idRestaurante <= 0)
       return BadRequest(new ApiResponse<List<Mesa>> { Success = false, Mensaje = "ID de restaurante no válido" });
 
      var mesas = _mesaDAO.ListarMesasPorRestaurante(idRestaurante);
+
+ // Si se especificó tipo (ej: "INTERIOR" o "EXTERIOR"), filtrar localmente
+ if (!string.IsNullOrWhiteSpace(tipo))
+ {
+ var tipoTrim = tipo.Trim();
+ mesas = mesas.FindAll(m => !string.IsNullOrEmpty(m.TipoMesa) && m.TipoMesa.Trim().Equals(tipoTrim, StringComparison.OrdinalIgnoreCase));
+ }
 
        return Ok(new ApiResponse<List<Mesa>>
    {
