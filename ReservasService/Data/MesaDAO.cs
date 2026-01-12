@@ -36,6 +36,7 @@ namespace ReservasService.Data
         // =========================================================
         // LISTAR MESAS POR RESTAURANTE
         // Ahora acepta un parámetro opcional `tipo` para filtrar por TipoMesa (Interior/Exterior)
+        // Usamos LIKE con COLLATE para tolerar mayúsculas/minúsculas y acentos
         // =========================================================
         public List<Mesa> ListarMesasPorRestaurante(int idRestaurante, string? tipo = null)
         {
@@ -50,8 +51,8 @@ namespace ReservasService.Data
 
                 if (!string.IsNullOrWhiteSpace(tipo))
                 {
-                    // Filtrar por tipo de mesa de forma case-insensitive
-                    query += " AND UPPER(LTRIM(RTRIM(TipoMesa))) = UPPER(LTRIM(RTRIM(@TipoMesa)))";
+                    // Usar COLLATE para ignorar mayúsculas/minúsculas y acentos, y LIKE para tolerar variaciones
+                    query += " AND UPPER(LTRIM(RTRIM(TipoMesa))) COLLATE Latin1_General_CI_AI LIKE '%' + UPPER(LTRIM(RTRIM(@TipoMesa))) + '%'";
                 }
 
                 query += "\n ORDER BY NumeroMesa";
