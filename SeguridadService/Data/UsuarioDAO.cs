@@ -36,7 +36,18 @@ da.Fill(dt);
   {
       using (SqlConnection cn = new SqlConnection(_connectionString))
         {
-  string query = @"
+ // Verificar si el email ya existe antes de intentar insertar
+ SqlCommand checkCmd = new SqlCommand("SELECT COUNT(1) FROM seguridad.Usuario WHERE Email = @Email", cn);
+ checkCmd.Parameters.AddWithValue("@Email", u.Email ?? "");
+
+ cn.Open();
+ var exists = Convert.ToInt32(checkCmd.ExecuteScalar());
+ if (exists >0)
+ {
+ throw new Exception("Ya existe un usuario con este correo electrónico.");
+ }
+
+ string query = @"
     INSERT INTO seguridad.Usuario 
        (Nombre, Email, Contrasena, Telefono, Cedula, Direccion, Rol, Estado)
     VALUES (@Nombre, @Email, @Contrasena, @Telefono, @Cedula, @Direccion, @Rol, @Estado)";
@@ -55,7 +66,7 @@ da.Fill(dt);
 
          try
        {
-           cn.Open();
+           // La conexión ya está abierta por la verificación previa
    cmd.ExecuteNonQuery();
            }
          catch (SqlException ex)
