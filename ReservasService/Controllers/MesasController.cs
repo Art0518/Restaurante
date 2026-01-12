@@ -347,7 +347,57 @@ _logger.LogError($"Error al eliminar mesa: {ex.Message}");
  return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
  }
  }
- }
+        // ============================================================
+   // VERIFICAR SI MESA ESTÁ OCUPADA EN FECHA Y HORA ESPECÍFICA
+   // ============================================================
+    [HttpGet]
+        [Route("{idMesa}/ocupada")]
+        public ActionResult<ApiResponse<object>> VerificarMesaOcupada(int idMesa, [FromQuery] DateTime fecha, [FromQuery] string hora)
+{
+            try
+    {
+         _logger.LogInformation($"REST: Verificando si mesa {idMesa} está ocupada para {fecha:yyyy-MM-dd} hora: {hora}");
+
+    if (idMesa <= 0)
+        return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de mesa no válido" });
+
+       if (string.IsNullOrWhiteSpace(hora))
+        return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "Debe especificar la hora" });
+
+     // Intentar parsear la hora
+        if (!TimeSpan.TryParse(hora, out TimeSpan ts))
+      {
+     return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "Formato de hora inválido. Use HH:mm o HH:mm:ss" });
+          }
+
+       bool disponible = _mesaDAO.EstaDisponibleEnHora(idMesa, fecha.Date, ts);
+   bool ocupada = !disponible; // Invertir la lógica
+
+     string estado = ocupada ? "OCUPADA" : "DISPONIBLE";
+string mensaje = ocupada 
+    ? $"La mesa {idMesa} está OCUPADA el {fecha:yyyy-MM-dd} a las {hora}" 
+         : $"La mesa {idMesa} está DISPONIBLE el {fecha:yyyy-MM-dd} a las {hora}";
+
+     return Ok(new ApiResponse<object>
+   {
+      Success = true,
+         Mensaje = mensaje,
+          Data = new { 
+             IdMesa = idMesa,
+         Fecha = fecha.ToString("yyyy-MM-dd"),
+          Hora = hora,
+  Estado = estado,
+    Ocupada = ocupada,
+ Disponible = disponible
+           }
+     });
+            }
+    catch (Exception ex)
+       {
+     _logger.LogError($"Error al verificar si mesa está ocupada: {ex.Message}");
+            return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
+      }
+  }
 
  // ============================================================
  // DTOs para las solicitudes
