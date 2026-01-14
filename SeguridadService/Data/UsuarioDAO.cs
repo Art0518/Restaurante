@@ -92,52 +92,68 @@ da.Fill(dt);
             }
         }
 
-        // Listar usuarios
+        // Listar usuarios (sin paginación - usa consulta directa)
         public DataTable Listar(string rol = null, string estado = null)
-      {
-            using (SqlConnection cn = new SqlConnection(_connectionString))
+        {
+     using (SqlConnection cn = new SqlConnection(_connectionString))
             {
-SqlCommand cmd = new SqlCommand("seguridad.sp_listar_usuarios", cn);
-                cmd.CommandType = CommandType.StoredProcedure;
-           cmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
-     cmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
-  
-       SqlDataAdapter da = new SqlDataAdapter(cmd);
-      DataTable dt = new DataTable();
-     da.Fill(dt);
-           return dt;
-            }
-     }
+            string query = @"
+     SELECT 
+         IdUsuario,
+              Nombre,
+     Email,
+ Cedula,
+  Rol,
+   Estado,
+     Telefono,
+              Direccion
+      FROM seguridad.Usuario
+  WHERE 
+        (@Rol IS NULL OR Rol = @Rol)
+     AND (@Estado IS NULL OR Estado = @Estado)
+        ORDER BY IdUsuario DESC";
 
-        // Listar usuarios con paginación
-  public (DataTable datos, int totalRegistros) Listar(string rol = null, string estado = null, int pagina = 1, int tamanoPagina = 50)
+         SqlCommand cmd = new SqlCommand(query, cn);
+           cmd.CommandType = CommandType.Text;
+       cmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
+  cmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
+      
+            SqlDataAdapter da = new SqlDataAdapter(cmd);
+       DataTable dt = new DataTable();
+da.Fill(dt);
+              return dt;
+ }
+        }
+
+  // Listar usuarios con paginación
+public (DataTable datos, int totalRegistros) Listar(string rol = null, string estado = null, int pagina = 1, int tamanoPagina = 50)
         {
        using (SqlConnection cn = new SqlConnection(_connectionString))
-    {
-            SqlCommand cmd = new SqlCommand("seguridad.sp_listar_usuarios", cn);
-     cmd.CommandType = CommandType.StoredProcedure;
-      cmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
-    cmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
-    cmd.Parameters.AddWithValue("@Pagina", pagina);
-    cmd.Parameters.AddWithValue("@TamanoPagina", tamanoPagina);
-  
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-          DataSet ds = new DataSet();
-      da.Fill(ds);
-       
-          // El primer resultado es el total de registros
-      int totalRegistros = 0;
-    if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
       {
-          totalRegistros = Convert.ToInt32(ds.Tables[0].Rows[0]["TotalRegistros"]);
-                }
+   SqlCommand cmd = new SqlCommand("seguridad.sp_listar_usuarios", cn);
+         cmd.CommandType = CommandType.StoredProcedure;
+    cmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Pagina", pagina);
+ cmd.Parameters.AddWithValue("@TamanoPagina", tamanoPagina);
+                
+ SqlDataAdapter da = new SqlDataAdapter(cmd);
+    DataSet ds = new DataSet();
+   da.Fill(ds);
        
-    // El segundo resultado son los datos paginados
- DataTable dt = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
-            
-                return (dt, totalRegistros);
-   }
-      }
+     // El primer resultado es el total de registros
+ int totalRegistros = 0;
+ if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+     {
+         totalRegistros = Convert.ToInt32(ds.Tables[0].Rows[0]["TotalRegistros"]);
+    }
+                
+ // El segundo resultado son los datos paginados
+          DataTable dt = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
+           
+       return (dt, totalRegistros);
+ }
+        }
 
         // Obtener usuario por ID
      public DataTable ObtenerPorId(int idUsuario)
