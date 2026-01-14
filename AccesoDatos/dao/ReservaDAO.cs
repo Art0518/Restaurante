@@ -213,35 +213,111 @@ namespace AccesoDatos.DAO
         }
 
         // ============================================================
-        // ✅ CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES
-        // ============================================================
+        // ✅ CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES - SIN SP
+      // ============================================================
         public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, int? promocionId = null)
         {
-            try
-            {
-                using (SqlConnection cn = conexion.CrearConexion())
-                {
-                    SqlCommand cmd = new SqlCommand("sp_confirmar_reservas_selectivas", cn);
-                    cmd.CommandType = CommandType.StoredProcedure;
+DataTable resultado = new DataTable();
+   resultado.Columns.Add("Estado", typeof(string));
+            resultado.Columns.Add("Mensaje", typeof(string));
+   resultado.Columns.Add("ReservasConfirmadas", typeof(int));
+   resultado.Columns.Add("IdFacturaAfectada", typeof(int));
+         resultado.Columns.Add("PromocionAplicada", typeof(int));
+   resultado.Columns.Add("DescuentoAplicado", typeof(decimal));
 
-                    cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
-                    cmd.Parameters.AddWithValue("@ReservasIds", reservasIds);
-                    cmd.Parameters.AddWithValue("@MetodoPago", metodoPago);
-                    if (promocionId.HasValue)
-                        cmd.Parameters.AddWithValue("@PromocionId", promocionId.Value);
+    try
+    {
+          using (SqlConnection cn = conexion.CrearConexion())
+       {
+          cn.Open();
+      SqlTransaction transaction = cn.BeginTransaction();
 
-                    SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    return dt;
-                }
-            }
-            catch (Exception ex)
+      try
+       {
+   // Obtener porcentaje de descuento si hay promoción
+ decimal porcentajeDescuento = 0;
+       if (promocionId.HasValue && promocionId.Value > 0)
+                 {
+           string queryPromocion = "SELECT Descuento FROM menu.Promocion WHERE IdPromocion = @PromocionId";
+      SqlCommand cmdPromo = new SqlCommand(queryPromocion, cn, transaction);
+      cmdPromo.Parameters.AddWithValue("@PromocionId", promocionId.Value);
+   object result = cmdPromo.ExecuteScalar();
+       if (result != null && result != DBNull.Value)
+   {
+     porcentajeDescuento = Convert.ToDecimal(result);
+    }
+     }
+
+          // Actualizar cada reserva
+         string updateQuery = @"
+       UPDATE reservas.Reserva
+ SET Estado = 'CONFIRMADA',
+          MetodoPago = @MetodoPago,
+          MontoDescuento = CASE 
+          WHEN @PorcentajeDescuento > 0 THEN (Total * @PorcentajeDescuento / 100)
+ELSE 0
+      END,
+    Total = CASE
+         WHEN @PorcentajeDescuento > 0 THEN Total - (Total * @PorcentajeDescuento / 100)
+  ELSE Total
+         END
+  WHERE IdReserva IN (" + reservasIds + @")
+     AND IdUsuario = @IdUsuario
+         AND Estado = 'HOLD'";
+
+        SqlCommand cmdUpdate = new SqlCommand(updateQuery, cn, transaction);
+        cmdUpdate.Parameters.AddWithValue("@MetodoPago", metodoPago);
+        cmdUpdate.Parameters.AddWithValue("@IdUsuario", idUsuario);
+    cmdUpdate.Parameters.AddWithValue("@PorcentajeDescuento", porcentajeDescuento);
+
+       int filasActualizadas = cmdUpdate.ExecuteNonQuery();
+
+        if (filasActualizadas == 0)
+         {
+      transaction.Rollback();
+           resultado.Rows.Add("ERROR", "No se encontraron reservas para confirmar", 0, DBNull.Value, DBNull.Value, 0);
+     return resultado;
+    }
+
+        // Calcular monto de descuento total
+      decimal descuentoTotal = 0;
+           if (porcentajeDescuento > 0)
+                 {
+   string queryDescuento = "SELECT SUM(MontoDescuento) FROM reservas.Reserva WHERE IdReserva IN (" + reservasIds + ")";
+           SqlCommand cmdDescuento = new SqlCommand(queryDescuento, cn, transaction);
+object resultDesc = cmdDescuento.ExecuteScalar();
+  if (resultDesc != null && resultDesc != DBNull.Value)
             {
-                throw new Exception("Error confirmando reservas selectivas: " + ex.Message);
-            }
+ descuentoTotal = Convert.ToDecimal(resultDesc);
+  }
+ }
+
+        transaction.Commit();
+
+    resultado.Rows.Add(
+         "SUCCESS",
+   $"Se confirmaron {filasActualizadas} reserva(s) correctamente",
+              filasActualizadas,
+     DBNull.Value,
+   promocionId.HasValue ? (object)promocionId.Value : DBNull.Value,
+      descuentoTotal
+        );
         }
-  
+     catch (Exception ex)
+         {
+     transaction.Rollback();
+  resultado.Rows.Add("ERROR", "Error al confirmar reservas: " + ex.Message, 0, DBNull.Value, DBNull.Value, 0);
+  }
+     }
+            }
+          catch (Exception ex)
+   {
+      resultado.Rows.Add("ERROR", "Error de conexión: " + ex.Message, 0, DBNull.Value, DBNull.Value, 0);
+          }
+
+       return resultado;
+        }
+
         // ============================================================
         // ✅ NUEVO: LISTAR RESERVAS CONFIRMADAS DE UN USUARIO
         // ============================================================
