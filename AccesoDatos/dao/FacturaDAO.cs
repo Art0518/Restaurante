@@ -101,7 +101,7 @@ resultado.Columns.Add("CantidadReservas", typeof(int));
      }
 
      // Verificar que el usuario existe
-   string checkUserSql = "SELECT COUNT(*) FROM Usuario WHERE IdUsuario = @IdUsuario";
+   string checkUserSql = "SELECT COUNT(*) FROM seguridad.Usuario WHERE IdUsuario = @IdUsuario";
      SqlCommand checkUserCmd = new SqlCommand(checkUserSql, cn, transaction);
        checkUserCmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
  int userExists = (int)checkUserCmd.ExecuteScalar();
@@ -647,7 +647,7 @@ resultado.Columns.Add("Estado", typeof(string));
      }
 
     // Verificar que el usuario existe
-   string checkUserSql = "SELECT COUNT(*) FROM Usuario WHERE IdUsuario = @IdUsuario";
+   string checkUserSql = "SELECT COUNT(*) FROM seguridad.Usuario WHERE IdUsuario = @IdUsuario";
      SqlCommand checkUserCmd = new SqlCommand(checkUserSql, cn, transaction);
      checkUserCmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
     int userExists = (int)checkUserCmd.ExecuteScalar();

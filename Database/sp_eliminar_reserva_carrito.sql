@@ -1,13 +1,10 @@
--- ============================================================
--- ?? STORED PROCEDURE: sp_eliminar_reserva_carrito
--- ?? DescripciÛn: Elimina una reserva del carrito (estado HOLD)
--- ?? Autor: Art0518
--- ?? Fecha: Enero 2025
+Ôªø-- ============================================================
+-- üìù STORED PROCEDURE: sp_eliminar_reserva_carrito
+-- üìå Descripci√≥n: Elimina una reserva del carrito (estado HOLD)
+-- üîß Autor: Art0518
+-- üìÖ Fecha: Enero 2025
 -- ============================================================
 
--- Eliminar el SP si existe
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_eliminar_reserva_carrito]') AND type in (N'P', N'PC'))
-DROP PROCEDURE [dbo].[sp_eliminar_reserva_carrito];
 
 -- Crear el nuevo SP
 CREATE PROCEDURE [dbo].[sp_eliminar_reserva_carrito]
@@ -20,11 +17,11 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
   
-        -- Validaciones b·sicas
+        -- Validaciones b√°sicas
         IF @IdUsuario <= 0
    BEGIN
             SELECT 'ERROR' AS Estado, 
-         'ID de usuario no v·lido' AS Mensaje, 
+         'ID de usuario no v√°lido' AS Mensaje, 
           0 AS ReservaEliminada;
 ROLLBACK TRANSACTION;
      RETURN;
@@ -33,13 +30,13 @@ ROLLBACK TRANSACTION;
         IF @IdReserva <= 0
         BEGIN
             SELECT 'ERROR' AS Estado, 
-         'ID de reserva no v·lido' AS Mensaje, 
+         'ID de reserva no v√°lido' AS Mensaje, 
            0 AS ReservaEliminada;
    ROLLBACK TRANSACTION;
   RETURN;
         END
     
- -- Verificar que la reserva existe, pertenece al usuario y est· en HOLD
+ -- Verificar que la reserva existe, pertenece al usuario y est√° en HOLD
         DECLARE @ReservaExiste INT;
         DECLARE @EstadoReserva VARCHAR(50);
         
@@ -59,7 +56,7 @@ ROLLBACK TRANSACTION;
           RETURN;
         END
         
-        -- Verificar que la reserva estÈ en estado HOLD
+        -- Verificar que la reserva est√© en estado HOLD
         IF @EstadoReserva != 'HOLD'
         BEGIN
    ROLLBACK TRANSACTION;
