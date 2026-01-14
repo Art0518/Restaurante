@@ -125,33 +125,60 @@ da.Fill(dt);
  }
         }
 
-  // Listar usuarios con paginación
+  // Listar usuarios con paginación usando consulta SQL directa (temporal hasta actualizar SP)
 public (DataTable datos, int totalRegistros) Listar(string rol = null, string estado = null, int pagina = 1, int tamanoPagina = 50)
         {
        using (SqlConnection cn = new SqlConnection(_connectionString))
       {
-   SqlCommand cmd = new SqlCommand("seguridad.sp_listar_usuarios", cn);
-         cmd.CommandType = CommandType.StoredProcedure;
-    cmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
-                cmd.Parameters.AddWithValue("@Pagina", pagina);
- cmd.Parameters.AddWithValue("@TamanoPagina", tamanoPagina);
-                
- SqlDataAdapter da = new SqlDataAdapter(cmd);
-    DataSet ds = new DataSet();
-   da.Fill(ds);
-       
-     // El primer resultado es el total de registros
- int totalRegistros = 0;
- if (ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
-     {
-         totalRegistros = Convert.ToInt32(ds.Tables[0].Rows[0]["TotalRegistros"]);
-    }
-                
- // El segundo resultado son los datos paginados
-          DataTable dt = ds.Tables.Count > 1 ? ds.Tables[1] : new DataTable();
-           
-       return (dt, totalRegistros);
+          cn.Open();
+ 
+            // Calcular el offset
+     int offset = (pagina - 1) * tamanoPagina;
+     
+          // Obtener el total de registros
+   string countQuery = @"
+       SELECT COUNT(*) AS TotalRegistros
+       FROM seguridad.Usuario
+         WHERE 
+     (@Rol IS NULL OR Rol = @Rol)
+         AND (@Estado IS NULL OR Estado = @Estado)";
+ 
+            SqlCommand countCmd = new SqlCommand(countQuery, cn);
+          countCmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
+ countCmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
+          
+      int totalRegistros = Convert.ToInt32(countCmd.ExecuteScalar());
+            
+      // Obtener los datos paginados
+          string dataQuery = @"
+         SELECT 
+             IdUsuario,
+         Nombre,
+    Email,
+      Cedula,
+     Rol,
+          Estado,
+        Telefono,
+          Direccion
+    FROM seguridad.Usuario
+      WHERE 
+          (@Rol IS NULL OR Rol = @Rol)
+      AND (@Estado IS NULL OR Estado = @Estado)
+    ORDER BY IdUsuario DESC
+       OFFSET @Offset ROWS
+ FETCH NEXT @TamanoPagina ROWS ONLY";
+ 
+            SqlCommand dataCmd = new SqlCommand(dataQuery, cn);
+          dataCmd.Parameters.AddWithValue("@Rol", (object)rol ?? DBNull.Value);
+    dataCmd.Parameters.AddWithValue("@Estado", (object)estado ?? DBNull.Value);
+ dataCmd.Parameters.AddWithValue("@Offset", offset);
+    dataCmd.Parameters.AddWithValue("@TamanoPagina", tamanoPagina);
+         
+   SqlDataAdapter da = new SqlDataAdapter(dataCmd);
+            DataTable dt = new DataTable();
+   da.Fill(dt);
+            
+     return (dt, totalRegistros);
  }
         }
 
