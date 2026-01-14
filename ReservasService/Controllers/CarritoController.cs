@@ -212,54 +212,74 @@ decimal montoDescuento = 0;
 decimal total = 0;
 
       // IdUsuario
-     if (data.IdUsuario != null)
-       idUsuario = Convert.ToInt32(data.IdUsuario);
- else if (data.idUsuario != null)
-   idUsuario = Convert.ToInt32(data.idUsuario);
+     try
+{
+         if (data.GetType().GetProperty("IdUsuario") != null)
+             idUsuario = Convert.ToInt32(data.IdUsuario);
+         else if (data.GetType().GetProperty("idUsuario") != null)
+      idUsuario = Convert.ToInt32(data.idUsuario);
+     }
+ catch { }
 
   // ReservasIds
-    if (data.ReservasIds != null)
-      reservasIds = data.ReservasIds.ToString();
-       else if (data.reservasIds != null)
-        reservasIds = data.reservasIds.ToString();
+try
+    {
+if (data.GetType().GetProperty("ReservasIds") != null)
+          reservasIds = data.ReservasIds.ToString();
+        else if (data.GetType().GetProperty("reservasIds") != null)
+            reservasIds = data.reservasIds.ToString();
+    }
+    catch { }
 
    // MetodoPago
-   if (data.MetodoPago != null)
-  metodoPago = data.MetodoPago.ToString();
-      else if (data.metodoPago != null)
-  metodoPago = data.metodoPago.ToString();
+   try
+   {
+       if (data.GetType().GetProperty("MetodoPago") != null)
+           metodoPago = data.MetodoPago.ToString();
+       else if (data.GetType().GetProperty("metodoPago") != null)
+        metodoPago = data.metodoPago.ToString();
+   }
+   catch { }
 
    // MontoDescuento (valor enviado desde el frontend)
-         if (data.MontoDescuento != null)
+   try
    {
-     if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
-      {
-    montoDescuento = monto;
-        }
-}
-  else if (data.montoDescuento != null)
- {
+       if (data.GetType().GetProperty("MontoDescuento") != null)
+       {
+  if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
+           {
+          montoDescuento = monto;
+           }
+       }
+       else if (data.GetType().GetProperty("montoDescuento") != null)
+       {
            if (decimal.TryParse(data.montoDescuento.ToString(), out decimal monto))
- {
-  montoDescuento = monto;
-        }
-  }
+   {
+     montoDescuento = monto;
+     }
+       }
+   }
+   catch { }
 
    // Total (valor enviado desde el frontend)
-         if (data.Total != null)
+   try
    {
-       if (decimal.TryParse(data.Total.ToString(), out decimal montoTotal))
+       if (data.GetType().GetProperty("Total") != null)
+       {
+     if (decimal.TryParse(data.Total.ToString(), out decimal montoTotal))
     {
+               total = montoTotal;
+  }
+       }
+       else if (data.GetType().GetProperty("total") != null)
+       {
+     if (decimal.TryParse(data.total.ToString(), out decimal montoTotal))
+   {
     total = montoTotal;
      }
-}
-  else if (data.total != null)
-        {
-           if (decimal.TryParse(data.total.ToString(), out decimal montoTotal))
-    {
-total = montoTotal;
+       }
    }
-  }
+   catch { }
 
        // Validaciones
   if (idUsuario <= 0)
