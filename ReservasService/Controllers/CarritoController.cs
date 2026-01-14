@@ -193,66 +193,59 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         }
 
         // ============================================================
-        // ? CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES
+        // ? CONFIRMAR RESERVAS SELECTIVAS - RECIBIR MONTO DE DESCUENTO
         // ============================================================
      [HttpPost("confirmar")]
       public IActionResult ConfirmarReservasSelectivas([FromBody] dynamic data)
-        {
+   {
    try
-       {
-                // Validar que data no sea null
+     {
+       // Validar que data no sea null
         if (data == null)
         return BadRequest(new { success = false, message = "Datos requeridos" });
 
-        // Extraer y validar parámetros con manejo seguro de null
-                int idUsuario = 0;
+     // Extraer y validar parámetros
+       int idUsuario = 0;
            string reservasIds = "";
                 string metodoPago = "";
-     int? promocionId = null;
-                decimal montoTotal = 0;
+decimal montoDescuento = 0;
 
          // IdUsuario
      if (data.IdUsuario != null)
        idUsuario = Convert.ToInt32(data.IdUsuario);
  else if (data.idUsuario != null)
-       idUsuario = Convert.ToInt32(data.idUsuario);
+   idUsuario = Convert.ToInt32(data.idUsuario);
 
       // ReservasIds
-            if (data.ReservasIds != null)
+      if (data.ReservasIds != null)
       reservasIds = data.ReservasIds.ToString();
        else if (data.reservasIds != null)
         reservasIds = data.reservasIds.ToString();
 
-     // MetodoPago
-        if (data.MetodoPago != null)
-        metodoPago = data.MetodoPago.ToString();
+   // MetodoPago
+   if (data.MetodoPago != null)
+  metodoPago = data.MetodoPago.ToString();
       else if (data.metodoPago != null)
   metodoPago = data.metodoPago.ToString();
 
-   // PromocionId (puede ser null)
-         if (data.PromocionId != null && data.PromocionId.ToString() != "null" && data.PromocionId.ToString() != "")
-   promocionId = Convert.ToInt32(data.PromocionId);
-        else if (data.promocionId != null && data.promocionId.ToString() != "null" && data.promocionId.ToString() != "")
-           promocionId = Convert.ToInt32(data.promocionId);
-
-        // Monto Total (NUEVO: recibir del frontend)
-      if (data.Monto != null)
-                {
-        if (decimal.TryParse(data.Monto.ToString(), out decimal monto))
-         {
-               montoTotal = monto;
-         }
-                }
-  else if (data.monto != null)
- {
-         if (decimal.TryParse(data.monto.ToString(), out decimal monto))
+   // MontoDescuento (valor enviado desde el frontend)
+         if (data.MontoDescuento != null)
+   {
+       if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
       {
-            montoTotal = monto;
-         }
-   }
+    montoDescuento = monto;
+        }
+}
+  else if (data.montoDescuento != null)
+           {
+           if (decimal.TryParse(data.montoDescuento.ToString(), out decimal monto))
+          {
+  montoDescuento = monto;
+          }
+  }
 
        // Validaciones
-    if (idUsuario <= 0)
+  if (idUsuario <= 0)
        return BadRequest(new { success = false, message = "ID de usuario no válido" });
 
         if (string.IsNullOrEmpty(reservasIds))
@@ -261,13 +254,13 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         if (string.IsNullOrEmpty(metodoPago))
          return BadRequest(new { success = false, message = "Método de pago es requerido" });
 
-      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, promocionId);
+      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, montoDescuento);
 
           if (resultado == null || resultado.Rows.Count == 0)
-          return BadRequest(new { success = false, message = "No se pudo procesar la confirmación" });
+        return BadRequest(new { success = false, message = "No se pudo procesar la confirmación" });
 
      // Verificar si hay error en la respuesta del SP
-        if (resultado.Columns.Contains("Estado") &&
+   if (resultado.Columns.Contains("Estado") &&
           resultado.Rows[0]["Estado"].ToString() == "ERROR")
      {
      return BadRequest(new { success = false, message = resultado.Rows[0]["Mensaje"].ToString() });
@@ -277,15 +270,11 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
     {
    success = true,
  message = resultado.Rows[0]["Mensaje"].ToString(),
-         reservasConfirmadas = resultado.Rows[0]["ReservasConfirmadas"],
-   idFacturaAfectada = resultado.Columns.Contains("IdFacturaAfectada") && resultado.Rows[0]["IdFacturaAfectada"] != DBNull.Value ? resultado.Rows[0]["IdFacturaAfectada"] : null,
-         promocionAplicada = resultado.Columns.Contains("PromocionAplicada") ? resultado.Rows[0]["PromocionAplicada"] : null,
-    descuentoAplicado = resultado.Columns.Contains("DescuentoAplicado") ? resultado.Rows[0]["DescuentoAplicado"] : null,
-             monto = montoTotal // Retornar el monto que recibió del frontend
+         reservasConfirmadas = resultado.Rows[0]["ReservasConfirmadas"]
           });
    }
    catch (Exception ex)
-     {
+   {
  _logger.LogError($"Error confirmando reservas: {ex.Message}");
   return StatusCode(500, new { success = false, message = $"Error confirmando reservas: {ex.Message}" });
  }

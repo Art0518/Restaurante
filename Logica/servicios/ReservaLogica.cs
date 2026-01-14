@@ -166,9 +166,9 @@ namespace Logica.Servicios
         }
 
         // ============================================================
-        // ✅ CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES
+        // ✅ CONFIRMAR RESERVAS SELECTIVAS - RECIBIR MONTO DE DESCUENTO
         // ============================================================
-        public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, int? promocionId = null)
+        public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, decimal montoDescuento)
         {
             if (idUsuario <= 0)
                 throw new Exception("ID de usuario no válido.");
@@ -179,7 +179,7 @@ namespace Logica.Servicios
             if (string.IsNullOrEmpty(metodoPago))
                 throw new Exception("Método de pago es requerido.");
 
-            return dao.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, promocionId);
+            return dao.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, montoDescuento);
         }
         
         // ============================================================

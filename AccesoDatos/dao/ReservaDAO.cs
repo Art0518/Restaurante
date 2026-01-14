@@ -213,110 +213,70 @@ namespace AccesoDatos.DAO
         }
 
         // ============================================================
-        // ✅ CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES - SIN SP
-      // ============================================================
-  public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, int? promocionId = null)
-        {
-DataTable resultado = new DataTable();
-   resultado.Columns.Add("Estado", typeof(string));
-         resultado.Columns.Add("Mensaje", typeof(string));
-   resultado.Columns.Add("ReservasConfirmadas", typeof(int));
-   resultado.Columns.Add("IdFacturaAfectada", typeof(int));
-         resultado.Columns.Add("MontoDescuento", typeof(decimal));  // ✅ CAMBIADO: MontoDescuento en lugar de PromocionAplicada
-   resultado.Columns.Add("PorcentajeDescuento", typeof(decimal));  // ✅ AGREGADO: PorcentajeDescuento
+        // ✅ CONFIRMAR RESERVAS SELECTIVAS - RECIBIR MONTO DE DESCUENTO
+        // ============================================================
+        public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, decimal montoDescuento)
+     {
+          DataTable resultado = new DataTable();
+      resultado.Columns.Add("Estado", typeof(string));
+  resultado.Columns.Add("Mensaje", typeof(string));
+    resultado.Columns.Add("ReservasConfirmadas", typeof(int));
 
-    try
-    {
-          using (SqlConnection cn = conexion.CrearConexion())
-       {
-        cn.Open();
+       try
+ {
+  using (SqlConnection cn = conexion.CrearConexion())
+   {
+         cn.Open();
       SqlTransaction transaction = cn.BeginTransaction();
 
-      try
-       {
-   // Obtener porcentaje de descuento si hay promoción
- decimal porcentajeDescuento = 0;
-       if (promocionId.HasValue && promocionId.Value > 0)
-           {
-   string queryPromocion = "SELECT Descuento FROM menu.Promocion WHERE IdPromocion = @PromocionId";
-      SqlCommand cmdPromo = new SqlCommand(queryPromocion, cn, transaction);
-      cmdPromo.Parameters.AddWithValue("@PromocionId", promocionId.Value);
-   object result = cmdPromo.ExecuteScalar();
-       if (result != null && result != DBNull.Value)
-   {
-     porcentajeDescuento = Convert.ToDecimal(result);
-    }
-     }
-
-          // Actualizar cada reserva
-         string updateQuery = @"
+   try
+              {
+           // Actualizar cada reserva con el monto de descuento recibido
+                string updateQuery = @"
        UPDATE reservas.Reserva
- SET Estado = 'CONFIRMADA',
-          MetodoPago = @MetodoPago,
-   MontoDescuento = CASE 
-       WHEN @PorcentajeDescuento > 0 THEN (Total * @PorcentajeDescuento / 100)
-ELSE 0
-      END,
-    Total = CASE
-         WHEN @PorcentajeDescuento > 0 THEN Total - (Total * @PorcentajeDescuento / 100)
-  ELSE Total
-         END
-  WHERE IdReserva IN (" + reservasIds + @")
-     AND IdUsuario = @IdUsuario
-         AND Estado = 'HOLD'";
+     SET Estado = 'CONFIRMADA',
+    MetodoPago = @MetodoPago,
+        MontoDescuento = @MontoDescuento
+            WHERE IdReserva IN (" + reservasIds + @")
+          AND IdUsuario = @IdUsuario
+   AND Estado = 'HOLD'";
 
-        SqlCommand cmdUpdate = new SqlCommand(updateQuery, cn, transaction);
-        cmdUpdate.Parameters.AddWithValue("@MetodoPago", metodoPago);
-        cmdUpdate.Parameters.AddWithValue("@IdUsuario", idUsuario);
-    cmdUpdate.Parameters.AddWithValue("@PorcentajeDescuento", porcentajeDescuento);
+    SqlCommand cmdUpdate = new SqlCommand(updateQuery, cn, transaction);
+   cmdUpdate.Parameters.AddWithValue("@MetodoPago", metodoPago);
+     cmdUpdate.Parameters.AddWithValue("@IdUsuario", idUsuario);
+              cmdUpdate.Parameters.AddWithValue("@MontoDescuento", montoDescuento);
 
-       int filasActualizadas = cmdUpdate.ExecuteNonQuery();
+        int filasActualizadas = cmdUpdate.ExecuteNonQuery();
 
-if (filasActualizadas == 0)
+            if (filasActualizadas == 0)
          {
-      transaction.Rollback();
-     resultado.Rows.Add("ERROR", "No se encontraron reservas para confirmar", 0, DBNull.Value, 0, 0);
-     return resultado;
-    }
+         transaction.Rollback();
+          resultado.Rows.Add("ERROR", "No se encontraron reservas para confirmar", 0);
+  return resultado;
+          }
 
-        // Calcular monto de descuento total
-      decimal montoDescuentoTotal = 0;
-  if (porcentajeDescuento > 0)
- {
-   string queryDescuento = "SELECT SUM(MontoDescuento) FROM reservas.Reserva WHERE IdReserva IN (" + reservasIds + ")";
-           SqlCommand cmdDescuento = new SqlCommand(queryDescuento, cn, transaction);
-object resultDesc = cmdDescuento.ExecuteScalar();
-  if (resultDesc != null && resultDesc != DBNull.Value)
-     {
- montoDescuentoTotal = Convert.ToDecimal(resultDesc);
-  }
- }
-
-        transaction.Commit();
+         transaction.Commit();
 
     resultado.Rows.Add(
          "SUCCESS",
-   $"Se confirmaron {filasActualizadas} reserva(s) correctamente",
-filasActualizadas,
-  DBNull.Value,
-   montoDescuentoTotal,     // ✅ CAMBIADO: Devuelve el monto del descuento
-      porcentajeDescuento      // ✅ AGREGADO: Devuelve el porcentaje
-        );
+      $"Se confirmaron {filasActualizadas} reserva(s) correctamente",
+    filasActualizadas
+                );
     }
-     catch (Exception ex)
-       {
-  transaction.Rollback();
-  resultado.Rows.Add("ERROR", "Error al confirmar reservas: " + ex.Message, 0, DBNull.Value, 0, 0);
-  }
+         catch (Exception ex)
+  {
+      transaction.Rollback();
+ resultado.Rows.Add("ERROR", "Error al confirmar reservas: " + ex.Message, 0);
+       }
      }
-        }
-          catch (Exception ex)
-   {
-      resultado.Rows.Add("ERROR", "Error de conexión: " + ex.Message, 0, DBNull.Value, 0, 0);
-  }
+            }
+catch (Exception ex)
+            {
+   resultado.Rows.Add("ERROR", "Error de conexión: " + ex.Message, 0);
+ }
 
-     return resultado;
-     }
+       return resultado;
+      }
 
         // ============================================================
         // ✅ NUEVO: LISTAR RESERVAS CONFIRMADAS DE UN USUARIO
