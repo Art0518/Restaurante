@@ -469,48 +469,48 @@ if (idUsuario <= 0)
     if (id <= 0)
     {
        return BadRequest(new
-         {
-              success = false,
+{
+          success = false,
        message = "ID de factura no válido"
     });
-         }
+     }
 
          DataSet ds = _facturaDAO.ObtenerFacturaDetallada(id);
 
       if (ds != null && ds.Tables.Count >= 2)
          {
-         DataTable facturaTable = ds.Tables[0];
-           DataTable detallesTable = ds.Tables[1];
+     DataTable facturaTable = ds.Tables[0];
+   DataTable detallesTable = ds.Tables[1];
 
           if (facturaTable.Rows.Count > 0)
         {
 return Ok(new
-      {
+    {
      success = true,
       message = "Factura detallada obtenida correctamente",
    factura = ConvertirDataTableALista(facturaTable),
-          detalles = ConvertIrDataTableALista(detallesTable)
+          detalles = ConvertirDataTableALista(detallesTable)
    });
    }
     else
-        {
+   {
         return NotFound(new { success = false, message = "Factura no encontrada" });
  }
       }
      else
      {
     return BadRequest(new
-        {
+      {
         success = false,
           message = "Error obteniendo los detalles de la factura"
           });
        }
  }
-            catch (Exception ex)
+         catch (Exception ex)
       {
   _logger.LogError($"Error al obtener factura detallada: {ex.Message}");
      return StatusCode(500, new { success = false, message = "Error al obtener factura detallada: " + ex.Message });
-       }
+  }
   }
 
      // ? NUEVO: POST /api/facturas/marcar-pagada
