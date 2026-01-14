@@ -44,20 +44,68 @@ _reservaDAO = new ReservaDAO(_connectionString);
    resultado.Tables[0].Rows.Count > 0 &&
       resultado.Tables[0].Rows[0]["Estado"].ToString() == "ERROR")
     {
-        return BadRequest(new { success = false, message = resultado.Tables[0].Rows[0]["Mensaje"].ToString() });
-           }
+   return BadRequest(new { success = false, message = resultado.Tables[0].Rows[0]["Mensaje"].ToString() });
+   }
 
-              var response = new
+   // Convertir DataTable a lista de objetos anónimos
+            var reservasList = new List<object>();
+            foreach (System.Data.DataRow row in resultado.Tables[0].Rows)
+       {
+                reservasList.Add(new
+       {
+     IdReserva = Convert.ToInt32(row["IdReserva"]),
+        IdUsuario = Convert.ToInt32(row["IdUsuario"]),
+          IdMesa = Convert.ToInt32(row["IdMesa"]),
+      NumeroMesa = row["NumeroMesa"]?.ToString(),
+CapacidadMesa = row["CapacidadMesa"] != DBNull.Value ? Convert.ToInt32(row["CapacidadMesa"]) : 0,
+            PrecioMesa = row["PrecioMesa"] != DBNull.Value ? Convert.ToDecimal(row["PrecioMesa"]) : 0,
+               Fecha = row["Fecha"] != DBNull.Value ? Convert.ToDateTime(row["Fecha"]).ToString("yyyy-MM-dd") : null,
+         Hora = row["Hora"]?.ToString(),
+      NumeroPersonas = Convert.ToInt32(row["NumeroPersonas"]),
+  Estado = row["Estado"]?.ToString(),
+           Observaciones = row["Observaciones"]?.ToString(),
+   MetodoPago = row["MetodoPago"]?.ToString(),
+ MontoDescuento = row["MontoDescuento"] != DBNull.Value ? Convert.ToDecimal(row["MontoDescuento"]) : 0,
+             Total = row["Total"] != DBNull.Value ? Convert.ToDecimal(row["Total"]) : 0,
+             Subtotal = row["Subtotal"] != DBNull.Value ? Convert.ToDecimal(row["Subtotal"]) : 0,
+         PromocionSeleccionada = row["PromocionSeleccionada"] != DBNull.Value ? Convert.ToInt32(row["PromocionSeleccionada"]) : (int?)null,
+         PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+  MontoDescuentoCalculado = row["MontoDescuentoCalculado"] != DBNull.Value ? Convert.ToDecimal(row["MontoDescuentoCalculado"]) : 0,
+  SubtotalConDescuento = row["SubtotalConDescuento"] != DBNull.Value ? Convert.ToDecimal(row["SubtotalConDescuento"]) : 0,
+             IVA = row["IVA"] != DBNull.Value ? Convert.ToDecimal(row["IVA"]) : 0,
+          TotalFinal = row["TotalFinal"] != DBNull.Value ? Convert.ToDecimal(row["TotalFinal"]) : 0
+             });
+ }
+
+      // Convertir resumen (segunda tabla) a objeto
+            object resumen = null;
+            if (resultado.Tables.Count > 1 && resultado.Tables[1].Rows.Count > 0)
+   {
+       var resumenRow = resultado.Tables[1].Rows[0];
+          resumen = new
+        {
+      TotalReservas = Convert.ToInt32(resumenRow["TotalReservas"]),
+Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow["Subtotal"]) : 0,
+           PromocionAplicada = resumenRow["PromocionAplicada"] != DBNull.Value ? Convert.ToInt32(resumenRow["PromocionAplicada"]) : (int?)null,
+ PorcentajeDescuento = resumenRow["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(resumenRow["PorcentajeDescuento"]) : 0,
+          MontoDescuentoTotal = resumenRow["MontoDescuentoTotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow["MontoDescuentoTotal"]) : 0,
+   SubtotalConDescuento = resumenRow["SubtotalConDescuento"] != DBNull.Value ? Convert.ToDecimal(resumenRow["SubtotalConDescuento"]) : 0,
+       IVA = resumenRow["IVA"] != DBNull.Value ? Convert.ToDecimal(resumenRow["IVA"]) : 0,
+        TotalCarrito = resumenRow["TotalCarrito"] != DBNull.Value ? Convert.ToDecimal(resumenRow["TotalCarrito"]) : 0
+  };
+   }
+
+      var response = new
        {
         success = true,
-              reservas = resultado.Tables[0], // Lista de reservas en carrito
-        resumen = resultado.Tables.Count > 1 ? resultado.Tables[1] : null // Resumen del carrito
+      reservas = reservasList,
+   resumen = resumen
     };
 
    return Ok(response);
         }
-         catch (Exception ex)
-            {
+     catch (Exception ex)
+          {
           _logger.LogError($"Error al obtener carrito: {ex.Message}");
      return StatusCode(500, new { success = false, message = $"Error al obtener carrito: {ex.Message}" });
     }
