@@ -53,44 +53,44 @@ da.Fill(dt);
     VALUES (@Nombre, @Email, @Contrasena, @Telefono, @Cedula, @Direccion, @Rol, @Estado)";
 
       SqlCommand cmd = new SqlCommand(query, cn);
-          cmd.CommandType = CommandType.Text;
-            cmd.CommandTimeout = 30; // 30 segundos de timeout
+        cmd.CommandType = CommandType.Text;
+   cmd.CommandTimeout = 30; // 30 segundos de timeout
       cmd.Parameters.AddWithValue("@Nombre", u.Nombre ?? "");
         cmd.Parameters.AddWithValue("@Email", u.Email);
             cmd.Parameters.AddWithValue("@Contrasena", contrasena);
-      cmd.Parameters.AddWithValue("@Telefono", u.Telefono ?? "");
+   cmd.Parameters.AddWithValue("@Telefono", u.Telefono ?? "");
              cmd.Parameters.AddWithValue("@Cedula", u.Cedula ?? "");
-                cmd.Parameters.AddWithValue("@Direccion", u.Direccion ?? "");
-    cmd.Parameters.AddWithValue("@Rol", u.Rol ?? "Usuario");
+   cmd.Parameters.AddWithValue("@Direccion", u.Direccion ?? "");
+    cmd.Parameters.AddWithValue("@Rol", u.Rol ?? "CLIENTE");  // Rol por defecto: CLIENTE
      cmd.Parameters.AddWithValue("@Estado", "ACTIVO");
 
          try
        {
-           // La conexión ya está abierta por la verificación previa
+         // La conexión ya está abierta por la verificación previa
    cmd.ExecuteNonQuery();
            }
-         catch (SqlException ex)
-      {
+      catch (SqlException ex)
+ {
       // Manejar errores específicos de SQL
-          if (ex.Message.Contains("UNIQUE") || ex.Message.Contains("duplicate") || ex.Number == 2627 || ex.Number == 2601)
-     {
-        if (ex.Message.ToLower().Contains("email") || ex.Message.Contains("UQ_Usuario_Email"))
+     if (ex.Message.Contains("UNIQUE") || ex.Message.Contains("duplicate") || ex.Number == 2627 || ex.Number == 2601)
+  {
+   if (ex.Message.ToLower().Contains("email") || ex.Message.Contains("UQ_Usuario_Email"))
         {
-            throw new Exception("Ya existe un usuario con este correo electrónico.");
+  throw new Exception("Ya existe un usuario con este correo electrónico.");
             }
     else if (ex.Message.ToLower().Contains("cedula") || ex.Message.Contains("UQ_Usuario_Cedula"))
  {
-         throw new Exception("Ya existe un usuario con esta cédula.");
+  throw new Exception("Ya existe un usuario con esta cédula.");
   }
      else
  {
      throw new Exception("Ya existe un usuario con estos datos.");
            }
 }
-         throw; // Re-lanzar otras excepciones SQL
+     throw; // Re-lanzar otras excepciones SQL
 }
             }
-        }
+  }
 
         // Listar usuarios (sin paginación - usa consulta directa)
         public DataTable Listar(string rol = null, string estado = null)

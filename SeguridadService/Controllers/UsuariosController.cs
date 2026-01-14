@@ -152,39 +152,39 @@ tamanoPagina = tamanoPagina,
      if (string.IsNullOrWhiteSpace(request.Contrasena))
 return BadRequest(new { mensaje = "La contraseña es obligatoria" });
 
-        // Concatenar nombre y apellido si se proporciona apellido
+    // Concatenar nombre y apellido si se proporciona apellido
   string nombreCompleto = request.Nombre;
         if (!string.IsNullOrWhiteSpace(request.Apellido))
   {
    nombreCompleto = $"{request.Nombre} {request.Apellido}";
-        }
+     }
 
-         // Crear el objeto usuario
+     // Crear el objeto usuario
              var usuario = new Usuario
      {
      Nombre = nombreCompleto,
  Email = request.Email,
-    Telefono = request.Telefono ?? "",
+Telefono = request.Telefono ?? "",
          Cedula = request.Cedula ?? "",
         Direccion = request.Direccion ?? "",
-     Rol = request.Rol ?? "Usuario",
+     Rol = request.Rol ?? "CLIENTE",  // Rol por defecto: CLIENTE
  Estado = "ACTIVO"
-     };
+  };
 
-      // La contraseña se pasa sin encriptar
-         _usuarioDAO.Registrar(usuario, request.Contrasena);
+ // La contraseña se pasa sin encriptar
+  _usuarioDAO.Registrar(usuario, request.Contrasena);
 
-      return Ok(new
+  return Ok(new
    {
-      mensaje = "Usuario registrado correctamente"
+   mensaje = "Usuario registrado correctamente"
  });
       }
         catch (Exception ex)
   {
     _logger.LogError($"Error al registrar usuario: {ex.Message}");
-        return BadRequest(new { mensaje = ex.Message });
+     return BadRequest(new { mensaje = ex.Message });
         }
-        }
+     }
 
         // ============================================================
    //  POST: /api/usuarios/login
