@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
 using ReservasService.Data;
 using System;
 using System.Data;
@@ -7,6 +8,7 @@ namespace ReservasService.Controllers
 {
     [ApiController]
   [Route("api/carrito")]
+    [EnableCors("AllowAll")]
     public class CarritoController : ControllerBase
     {
    private readonly ILogger<CarritoController> _logger;

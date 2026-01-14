@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
 using FacturacionService.Models;
 using FacturacionService.Data;
 using System;
@@ -9,6 +10,7 @@ namespace FacturacionService.Controllers
 {
     [ApiController]
     [Route("api/detallefactura")]
+    [EnableCors("AllowAll")]
     public class DetalleFacturaController : ControllerBase
     {
     private readonly ILogger<DetalleFacturaController> _logger;

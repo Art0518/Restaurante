@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Cors;
 using FacturacionService.Models;
 using FacturacionService.Data;
 using System;
@@ -11,6 +12,7 @@ namespace FacturacionService.Controllers
     // ?? Prefijo base de la API
     [ApiController]
     [Route("api/facturas")]
+    [EnableCors("AllowAll")]
     public class FacturacionController : ControllerBase
     {
         private readonly ILogger<FacturacionController> _logger;
@@ -487,7 +489,7 @@ return Ok(new
      success = true,
       message = "Factura detallada obtenida correctamente",
    factura = ConvertirDataTableALista(facturaTable),
-          detalles = ConvertirDataTableALista(detallesTable)
+          detalles = ConvertIrDataTableALista(detallesTable)
    });
    }
     else
