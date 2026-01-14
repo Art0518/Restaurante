@@ -121,19 +121,35 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         {
         try
   {
- var promociones = _promocionDAO.ListarPromocionesActivas();
+ DataTable dt = _promocionDAO.ListarPromocionesActivas();
 
-              if (promociones == null)
-         return BadRequest(new { success = false, message = "No se pudieron obtener las promociones" });
+              if (dt == null || dt.Rows.Count == 0)
+         return Ok(new { success = true, promociones = new List<object>() });
+
+         // Convertir DataTable a lista de objetos
+   var promociones = new List<object>();
+         foreach (DataRow row in dt.Rows)
+     {
+      promociones.Add(new
+ {
+        IdPromocion = Convert.ToInt32(row["IdPromocion"]),
+          Nombre = row["Nombre"]?.ToString(),
+        Descripcion = row["Descripcion"]?.ToString(),
+ PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+          FechaInicio = row["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(row["FechaInicio"]).ToString("yyyy-MM-dd") : null,
+           FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
+    Estado = row["Estado"]?.ToString()
+        });
+         }
 
          return Ok(new
-        {
+   {
       success = true,
-         promociones = promociones
+     promociones = promociones
     });
-            }
+  }
    catch (Exception ex)
-            {
+    {
      _logger.LogError($"Error al obtener promociones: {ex.Message}");
     return StatusCode(500, new { success = false, message = $"Error al obtener promociones: {ex.Message}" });
    }
@@ -278,9 +294,9 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
       // ============================================================
         // ?? LISTAR PROMOCIONES VÁLIDAS PARA FECHAS DEL CARRITO DE UN USUARIO
  // ============================================================
-        [HttpGet("promociones-validas/{idUsuario}")]
-        public IActionResult ListarPromocionesValidasParaCarrito(int idUsuario)
-        {
+     [HttpGet("promociones-validas/{idUsuario}")]
+   public IActionResult ListarPromocionesValidasParaCarrito(int idUsuario)
+{
   try
           {
         if (idUsuario <= 0)
@@ -288,22 +304,36 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
 
     // Nota: Este método necesita estar implementado en PromocionDAO
 // Si no existe, se puede usar ListarPromocionesActivas como alternativa
-            var promocionesValidas = _promocionDAO.ListarPromocionesActivas();
+     DataTable dt = _promocionDAO.ListarPromocionesActivas();
 
-       if (promocionesValidas == null)
-        return BadRequest(new { success = false, message = "No se pudieron obtener las promociones válidas" });
+   if (dt == null || dt.Rows.Count == 0)
+        return Ok(new { success = true, promociones = new List<object>() });
+
+         // Convertir DataTable a lista de objetos
+        var promociones = new List<object>();
+      foreach (DataRow row in dt.Rows)
+ {
+   promociones.Add(new
+ {
+      IdPromocion = Convert.ToInt32(row["IdPromocion"]),
+        Nombre = row["Nombre"]?.ToString(),
+        Descripcion = row["Descripcion"]?.ToString(),
+      PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+       FechaInicio = row["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(row["FechaInicio"]).ToString("yyyy-MM-dd") : null,
+    FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
+  Estado = row["Estado"]?.ToString()
+   });
+}
 
       return Ok(new
-        {
+     {
         success = true,
-         promociones = promocionesValidas
+   promociones = promociones
     });
      }
    catch (Exception ex)
   {
-              _logger.LogError($"Error al obtener promociones válidas: {ex.Message}");
-       return StatusCode(500, new { success = false, message = $"Error al obtener promociones válidas: {ex.Message}" });
-            }
-        }
+       _logger.LogError($"Error al obtener promociones válidas: {ex.Message}");
+   return StatusCode(500, new { success = false, message = $"Error al obtener promociones válidas: {ex.Message}" });
     }
-}
+ }
