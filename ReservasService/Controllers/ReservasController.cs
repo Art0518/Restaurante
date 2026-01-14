@@ -11,7 +11,7 @@ using System.Linq;
 namespace ReservasService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/reservas")]
     public class ReservasController : ControllerBase
     {
       private readonly ILogger<ReservasController> _logger;
