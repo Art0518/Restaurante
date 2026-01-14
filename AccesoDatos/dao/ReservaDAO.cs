@@ -215,21 +215,21 @@ namespace AccesoDatos.DAO
         // ============================================================
         // ✅ CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES - SIN SP
       // ============================================================
-        public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, int? promocionId = null)
+  public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, int? promocionId = null)
         {
 DataTable resultado = new DataTable();
    resultado.Columns.Add("Estado", typeof(string));
-            resultado.Columns.Add("Mensaje", typeof(string));
+         resultado.Columns.Add("Mensaje", typeof(string));
    resultado.Columns.Add("ReservasConfirmadas", typeof(int));
    resultado.Columns.Add("IdFacturaAfectada", typeof(int));
-         resultado.Columns.Add("PromocionAplicada", typeof(int));
-   resultado.Columns.Add("DescuentoAplicado", typeof(decimal));
+         resultado.Columns.Add("MontoDescuento", typeof(decimal));  // ✅ CAMBIADO: MontoDescuento en lugar de PromocionAplicada
+   resultado.Columns.Add("PorcentajeDescuento", typeof(decimal));  // ✅ AGREGADO: PorcentajeDescuento
 
     try
     {
           using (SqlConnection cn = conexion.CrearConexion())
        {
-          cn.Open();
+        cn.Open();
       SqlTransaction transaction = cn.BeginTransaction();
 
       try
@@ -237,8 +237,8 @@ DataTable resultado = new DataTable();
    // Obtener porcentaje de descuento si hay promoción
  decimal porcentajeDescuento = 0;
        if (promocionId.HasValue && promocionId.Value > 0)
-                 {
-           string queryPromocion = "SELECT Descuento FROM menu.Promocion WHERE IdPromocion = @PromocionId";
+           {
+   string queryPromocion = "SELECT Descuento FROM menu.Promocion WHERE IdPromocion = @PromocionId";
       SqlCommand cmdPromo = new SqlCommand(queryPromocion, cn, transaction);
       cmdPromo.Parameters.AddWithValue("@PromocionId", promocionId.Value);
    object result = cmdPromo.ExecuteScalar();
@@ -253,8 +253,8 @@ DataTable resultado = new DataTable();
        UPDATE reservas.Reserva
  SET Estado = 'CONFIRMADA',
           MetodoPago = @MetodoPago,
-          MontoDescuento = CASE 
-          WHEN @PorcentajeDescuento > 0 THEN (Total * @PorcentajeDescuento / 100)
+   MontoDescuento = CASE 
+       WHEN @PorcentajeDescuento > 0 THEN (Total * @PorcentajeDescuento / 100)
 ELSE 0
       END,
     Total = CASE
@@ -272,23 +272,23 @@ ELSE 0
 
        int filasActualizadas = cmdUpdate.ExecuteNonQuery();
 
-        if (filasActualizadas == 0)
+if (filasActualizadas == 0)
          {
       transaction.Rollback();
-           resultado.Rows.Add("ERROR", "No se encontraron reservas para confirmar", 0, DBNull.Value, DBNull.Value, 0);
+     resultado.Rows.Add("ERROR", "No se encontraron reservas para confirmar", 0, DBNull.Value, 0, 0);
      return resultado;
     }
 
         // Calcular monto de descuento total
-      decimal descuentoTotal = 0;
-           if (porcentajeDescuento > 0)
-                 {
+      decimal montoDescuentoTotal = 0;
+  if (porcentajeDescuento > 0)
+ {
    string queryDescuento = "SELECT SUM(MontoDescuento) FROM reservas.Reserva WHERE IdReserva IN (" + reservasIds + ")";
            SqlCommand cmdDescuento = new SqlCommand(queryDescuento, cn, transaction);
 object resultDesc = cmdDescuento.ExecuteScalar();
   if (resultDesc != null && resultDesc != DBNull.Value)
-            {
- descuentoTotal = Convert.ToDecimal(resultDesc);
+     {
+ montoDescuentoTotal = Convert.ToDecimal(resultDesc);
   }
  }
 
@@ -297,26 +297,26 @@ object resultDesc = cmdDescuento.ExecuteScalar();
     resultado.Rows.Add(
          "SUCCESS",
    $"Se confirmaron {filasActualizadas} reserva(s) correctamente",
-              filasActualizadas,
-     DBNull.Value,
-   promocionId.HasValue ? (object)promocionId.Value : DBNull.Value,
-      descuentoTotal
+filasActualizadas,
+  DBNull.Value,
+   montoDescuentoTotal,     // ✅ CAMBIADO: Devuelve el monto del descuento
+      porcentajeDescuento      // ✅ AGREGADO: Devuelve el porcentaje
         );
-        }
+    }
      catch (Exception ex)
-         {
-     transaction.Rollback();
-  resultado.Rows.Add("ERROR", "Error al confirmar reservas: " + ex.Message, 0, DBNull.Value, DBNull.Value, 0);
+       {
+  transaction.Rollback();
+  resultado.Rows.Add("ERROR", "Error al confirmar reservas: " + ex.Message, 0, DBNull.Value, 0, 0);
   }
      }
-            }
+        }
           catch (Exception ex)
    {
-      resultado.Rows.Add("ERROR", "Error de conexión: " + ex.Message, 0, DBNull.Value, DBNull.Value, 0);
-          }
+      resultado.Rows.Add("ERROR", "Error de conexión: " + ex.Message, 0, DBNull.Value, 0, 0);
+  }
 
-       return resultado;
-        }
+     return resultado;
+     }
 
         // ============================================================
         // ✅ NUEVO: LISTAR RESERVAS CONFIRMADAS DE UN USUARIO
