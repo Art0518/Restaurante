@@ -34,10 +34,106 @@ namespace SeguridadService.Controllers
         [HttpGet]
         public IActionResult VerificarServicio()
         {
-       return Ok(new { mensaje = "Servicio de Seguridad activo", version = "1.0" });
+  return Ok(new { mensaje = "Servicio de Seguridad activo", version = "1.0" });
         }
 
-   // ============================================================
+        // ============================================================
+        //  GET: /api/usuarios/listar
+        // ============================================================
+        [HttpGet("listar")]
+  public IActionResult ListarUsuarios(
+        [FromQuery] string? rol = null,
+  [FromQuery] string? estado = null,
+     [FromQuery] int pagina = 1,
+    [FromQuery] int tamanoPagina = 50)
+   {
+  try
+      {
+   // Validar parámetros de paginación
+ if (pagina < 1) pagina = 1;
+ if (tamanoPagina < 1) tamanoPagina = 50;
+         if (tamanoPagina > 500) tamanoPagina = 500; // Límite máximo para evitar sobrecarga
+ 
+    _logger.LogInformation($"REST: Listando usuarios - Página: {pagina}, Tamaño: {tamanoPagina}, Rol: {rol}, Estado: {estado}");
+
+      var (dt, totalRegistros) = _usuarioDAO.Listar(rol, estado, pagina, tamanoPagina);
+  
+      // Convertir DataTable a lista de objetos para serialización
+    var usuarios = new List<object>();
+      foreach (DataRow row in dt.Rows)
+        {
+      usuarios.Add(new
+   {
+           IdUsuario = Convert.ToInt32(row["IdUsuario"]),
+      Nombre = row["Nombre"]?.ToString() ?? "",
+  Email = row["Email"]?.ToString() ?? "",
+    Cedula = row["Cedula"]?.ToString() ?? "",
+Rol = row["Rol"]?.ToString() ?? "",
+      Estado = row["Estado"]?.ToString() ?? "",
+ Telefono = row["Telefono"]?.ToString() ?? "",
+      Direccion = row["Direccion"]?.ToString() ?? ""
+  });
+        }
+
+      // Calcular información de paginación
+      int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
+
+   return Ok(new 
+ { 
+          total = totalRegistros,
+   pagina = pagina,
+tamanoPagina = tamanoPagina,
+        totalPaginas = totalPaginas,
+ usuarios = usuarios
+  });
+    }
+ catch (Exception ex)
+  {
+      _logger.LogError($"Error al listar usuarios: {ex.Message}");
+    return StatusCode(500, new { mensaje = ex.Message });
+    }
+    }
+
+        // ============================================================
+   //  GET: /api/usuarios/{id}
+        // ============================================================
+        [HttpGet("{idUsuario}")]
+      public IActionResult ObtenerUsuario(int idUsuario)
+ {
+    try
+  {
+      _logger.LogInformation($"REST: Obteniendo usuario {idUsuario}");
+
+  if (idUsuario <= 0)
+  return BadRequest(new { mensaje = "ID de usuario no válido" });
+
+ DataTable dt = _usuarioDAO.ObtenerPorId(idUsuario);
+
+ if (dt.Rows.Count == 0)
+        return NotFound(new { mensaje = "Usuario no encontrado" });
+
+   var row = dt.Rows[0];
+
+   return Ok(new
+           {
+    IdUsuario = Convert.ToInt32(row["IdUsuario"]),
+     Nombre = row["Nombre"]?.ToString() ?? "",
+   Email = row["Email"]?.ToString() ?? "",
+    Cedula = row["Cedula"]?.ToString() ?? "",
+      Telefono = row["Telefono"]?.ToString() ?? "",
+        Direccion = row["Direccion"]?.ToString() ?? "",
+        Rol = row["Rol"]?.ToString() ?? "",
+  Estado = row["Estado"]?.ToString() ?? ""
+        });
+ }
+            catch (Exception ex)
+  {
+    _logger.LogError($"Error al obtener usuario: {ex.Message}");
+      return StatusCode(500, new { mensaje = ex.Message });
+    }
+     }
+
+        // ============================================================
         //  POST: /api/usuarios/registrar
         // ============================================================
  [HttpPost("registrar")]
@@ -152,103 +248,7 @@ Telefono = usuario.Telefono,
         }
 
         // ============================================================
-   //  GET: /api/usuarios/{id}
-        // ============================================================
-        [HttpGet("{idUsuario}")]
-        public IActionResult ObtenerUsuario(int idUsuario)
-        {
-    try
-            {
-      _logger.LogInformation($"REST: Obteniendo usuario {idUsuario}");
-
-           if (idUsuario <= 0)
-            return BadRequest(new { mensaje = "ID de usuario no válido" });
-
-        DataTable dt = _usuarioDAO.ObtenerPorId(idUsuario);
-
-     if (dt.Rows.Count == 0)
-        return NotFound(new { mensaje = "Usuario no encontrado" });
-
-             var row = dt.Rows[0];
-
-   return Ok(new
-           {
-    IdUsuario = Convert.ToInt32(row["IdUsuario"]),
-             Nombre = row["Nombre"]?.ToString() ?? "",
-   Email = row["Email"]?.ToString() ?? "",
-    Cedula = row["Cedula"]?.ToString() ?? "",
-      Telefono = row["Telefono"]?.ToString() ?? "",
-        Direccion = row["Direccion"]?.ToString() ?? "",
-           Rol = row["Rol"]?.ToString() ?? "",
-               Estado = row["Estado"]?.ToString() ?? ""
-        });
- }
-            catch (Exception ex)
-            {
-    _logger.LogError($"Error al obtener usuario: {ex.Message}");
-      return StatusCode(500, new { mensaje = ex.Message });
-    }
-        }
-
-    // ============================================================
- //  GET: /api/usuarios/listar
-        // ============================================================
-        [HttpGet("listar")]
-        public IActionResult ListarUsuarios(
-          [FromQuery] string? rol = null,
-            [FromQuery] string? estado = null,
-        [FromQuery] int pagina = 1,
-    [FromQuery] int tamanoPagina = 50)
-   {
-  try
-      {
-       // Validar parámetros de paginación
- if (pagina < 1) pagina = 1;
- if (tamanoPagina < 1) tamanoPagina = 50;
-         if (tamanoPagina > 500) tamanoPagina = 500; // Límite máximo para evitar sobrecarga
-       
-        _logger.LogInformation($"REST: Listando usuarios - Página: {pagina}, Tamaño: {tamanoPagina}, Rol: {rol}, Estado: {estado}");
-
-      var (dt, totalRegistros) = _usuarioDAO.Listar(rol, estado, pagina, tamanoPagina);
-  
-      // Convertir DataTable a lista de objetos para serialización
-       var usuarios = new List<object>();
-      foreach (DataRow row in dt.Rows)
-        {
-         usuarios.Add(new
-           {
-           IdUsuario = Convert.ToInt32(row["IdUsuario"]),
-      Nombre = row["Nombre"]?.ToString() ?? "",
-    Email = row["Email"]?.ToString() ?? "",
-    Cedula = row["Cedula"]?.ToString() ?? "",
-           Rol = row["Rol"]?.ToString() ?? "",
-      Estado = row["Estado"]?.ToString() ?? "",
- Telefono = row["Telefono"]?.ToString() ?? "",
-      Direccion = row["Direccion"]?.ToString() ?? ""
-  });
-        }
-
-        // Calcular información de paginación
-      int totalPaginas = (int)Math.Ceiling((double)totalRegistros / tamanoPagina);
-
-        return Ok(new 
- { 
-          total = totalRegistros,
-   pagina = pagina,
-tamanoPagina = tamanoPagina,
-          totalPaginas = totalPaginas,
- usuarios = usuarios
-  });
-    }
-    catch (Exception ex)
-  {
-      _logger.LogError($"Error al listar usuarios: {ex.Message}");
-    return StatusCode(500, new { mensaje = ex.Message });
-    }
-    }
-
-        // ============================================================
-    //  PUT: /api/usuarios/{id}
+   //  PUT: /api/usuarios/{id}
         // ============================================================
   [HttpPut("{idUsuario}")]
   public IActionResult ActualizarUsuario(int idUsuario, [FromBody] ActualizarUsuarioDto request)
