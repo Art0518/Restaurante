@@ -309,7 +309,7 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
    if (dt == null || dt.Rows.Count == 0)
         return Ok(new { success = true, promociones = new List<object>() });
 
-         // Convertir DataTable a lista de objetos
+     // Convertir DataTable a lista de objetos
         var promociones = new List<object>();
       foreach (DataRow row in dt.Rows)
  {
@@ -317,8 +317,8 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
  {
       IdPromocion = Convert.ToInt32(row["IdPromocion"]),
         Nombre = row["Nombre"]?.ToString(),
-        Descripcion = row["Descripcion"]?.ToString(),
-      PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+    Descripcion = row["Descripcion"]?.ToString(),
+   PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
        FechaInicio = row["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(row["FechaInicio"]).ToString("yyyy-MM-dd") : null,
     FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
   Estado = row["Estado"]?.ToString()
@@ -327,13 +327,15 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
 
       return Ok(new
      {
-        success = true,
+      success = true,
    promociones = promociones
     });
      }
    catch (Exception ex)
   {
-       _logger.LogError($"Error al obtener promociones válidas: {ex.Message}");
+   _logger.LogError($"Error al obtener promociones válidas: {ex.Message}");
    return StatusCode(500, new { success = false, message = $"Error al obtener promociones válidas: {ex.Message}" });
     }
  }
+    }
+}
