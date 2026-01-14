@@ -218,7 +218,7 @@ cmd.CommandType = CommandType.StoredProcedure;
         // ============================================================
         // ? CONFIRMAR RESERVAS SELECTIVAS CON PROMOCIONES
       // ============================================================
-  public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, decimal montoDescuento)
+  public DataTable ConfirmarReservasSelectivas(int idUsuario, string reservasIds, string metodoPago, decimal montoDescuento, decimal total)
         {
       try
             {
@@ -231,6 +231,7 @@ cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
         cmd.Parameters.AddWithValue("@ReservasIds", reservasIds);
           cmd.Parameters.AddWithValue("@MetodoPago", metodoPago);
              cmd.Parameters.AddWithValue("@MontoDescuento", montoDescuento);
+ cmd.Parameters.AddWithValue("@Total", total);
 
      SqlDataAdapter da = new SqlDataAdapter(cmd);
           DataTable dt = new DataTable();

@@ -207,17 +207,18 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
      // Extraer y validar parámetros
        int idUsuario = 0;
            string reservasIds = "";
-                string metodoPago = "";
+     string metodoPago = "";
 decimal montoDescuento = 0;
+decimal total = 0;
 
-         // IdUsuario
+      // IdUsuario
      if (data.IdUsuario != null)
        idUsuario = Convert.ToInt32(data.IdUsuario);
  else if (data.idUsuario != null)
    idUsuario = Convert.ToInt32(data.idUsuario);
 
-      // ReservasIds
-      if (data.ReservasIds != null)
+  // ReservasIds
+    if (data.ReservasIds != null)
       reservasIds = data.ReservasIds.ToString();
        else if (data.reservasIds != null)
         reservasIds = data.reservasIds.ToString();
@@ -231,17 +232,33 @@ decimal montoDescuento = 0;
    // MontoDescuento (valor enviado desde el frontend)
          if (data.MontoDescuento != null)
    {
-       if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
+     if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
       {
     montoDescuento = monto;
         }
 }
   else if (data.montoDescuento != null)
-           {
+ {
            if (decimal.TryParse(data.montoDescuento.ToString(), out decimal monto))
-          {
+ {
   montoDescuento = monto;
-          }
+        }
+  }
+
+   // Total (valor enviado desde el frontend)
+         if (data.Total != null)
+   {
+       if (decimal.TryParse(data.Total.ToString(), out decimal montoTotal))
+    {
+    total = montoTotal;
+     }
+}
+  else if (data.total != null)
+        {
+           if (decimal.TryParse(data.total.ToString(), out decimal montoTotal))
+    {
+total = montoTotal;
+   }
   }
 
        // Validaciones
@@ -251,12 +268,15 @@ decimal montoDescuento = 0;
         if (string.IsNullOrEmpty(reservasIds))
         return BadRequest(new { success = false, message = "Debe especificar las reservas a confirmar" });
 
-        if (string.IsNullOrEmpty(metodoPago))
-         return BadRequest(new { success = false, message = "Método de pago es requerido" });
+ if (string.IsNullOrEmpty(metodoPago))
+   return BadRequest(new { success = false, message = "Método de pago es requerido" });
 
-      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, montoDescuento);
+      if (total <= 0)
+      return BadRequest(new { success = false, message = "El total debe ser mayor a 0" });
 
-          if (resultado == null || resultado.Rows.Count == 0)
+      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, montoDescuento, total);
+
+    if (resultado == null || resultado.Rows.Count == 0)
         return BadRequest(new { success = false, message = "No se pudo procesar la confirmación" });
 
      // Verificar si hay error en la respuesta del SP
@@ -266,12 +286,12 @@ decimal montoDescuento = 0;
      return BadRequest(new { success = false, message = resultado.Rows[0]["Mensaje"].ToString() });
     }
 
-           return Ok(new
+return Ok(new
     {
    success = true,
  message = resultado.Rows[0]["Mensaje"].ToString(),
-         reservasConfirmadas = resultado.Rows[0]["ReservasConfirmadas"]
-          });
+       reservasConfirmadas = resultado.Rows[0]["ReservasConfirmadas"]
+  });
    }
    catch (Exception ex)
    {
