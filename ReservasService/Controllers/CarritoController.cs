@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Cors;
 using ReservasService.Data;
+using ReservasService.Models;
 using System;
 using System.Data;
 
@@ -12,11 +13,11 @@ namespace ReservasService.Controllers
     public class CarritoController : ControllerBase
     {
    private readonly ILogger<CarritoController> _logger;
-        private readonly ReservaDAO _reservaDAO;
+   private readonly ReservaDAO _reservaDAO;
         private readonly PromocionDAO _promocionDAO;
       private readonly string _connectionString;
 
-        public CarritoController(ILogger<CarritoController> logger, IConfiguration configuration)
+     public CarritoController(ILogger<CarritoController> logger, IConfiguration configuration)
         {
       _logger = logger;
  _connectionString = configuration.GetConnectionString("DefaultConnection") 
@@ -196,105 +197,33 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         // ? CONFIRMAR RESERVAS SELECTIVAS - RECIBIR MONTO DE DESCUENTO
         // ============================================================
      [HttpPost("confirmar")]
-      public IActionResult ConfirmarReservasSelectivas([FromBody] dynamic data)
+      public IActionResult ConfirmarReservasSelectivas([FromBody] ConfirmarReservasRequest request)
    {
    try
      {
-       // Validar que data no sea null
-        if (data == null)
-        return BadRequest(new { success = false, message = "Datos requeridos" });
-
-     // Extraer y validar parámetros
-       int idUsuario = 0;
-           string reservasIds = "";
-     string metodoPago = "";
-decimal montoDescuento = 0;
-decimal total = 0;
-
-      // IdUsuario
-     try
-{
-         if (data.GetType().GetProperty("IdUsuario") != null)
-             idUsuario = Convert.ToInt32(data.IdUsuario);
-         else if (data.GetType().GetProperty("idUsuario") != null)
-      idUsuario = Convert.ToInt32(data.idUsuario);
-     }
- catch { }
-
-  // ReservasIds
-try
-    {
-if (data.GetType().GetProperty("ReservasIds") != null)
-          reservasIds = data.ReservasIds.ToString();
-        else if (data.GetType().GetProperty("reservasIds") != null)
-            reservasIds = data.reservasIds.ToString();
-    }
-    catch { }
-
-   // MetodoPago
-   try
-   {
-       if (data.GetType().GetProperty("MetodoPago") != null)
-           metodoPago = data.MetodoPago.ToString();
-       else if (data.GetType().GetProperty("metodoPago") != null)
-        metodoPago = data.metodoPago.ToString();
-   }
-   catch { }
-
-   // MontoDescuento (valor enviado desde el frontend)
-   try
-   {
-       if (data.GetType().GetProperty("MontoDescuento") != null)
-       {
-  if (decimal.TryParse(data.MontoDescuento.ToString(), out decimal monto))
-           {
-          montoDescuento = monto;
-           }
-       }
-       else if (data.GetType().GetProperty("montoDescuento") != null)
-       {
-           if (decimal.TryParse(data.montoDescuento.ToString(), out decimal monto))
-   {
-     montoDescuento = monto;
-     }
-       }
-   }
-   catch { }
-
-   // Total (valor enviado desde el frontend)
-   try
-   {
-       if (data.GetType().GetProperty("Total") != null)
-       {
-     if (decimal.TryParse(data.Total.ToString(), out decimal montoTotal))
-    {
-               total = montoTotal;
-  }
-       }
-       else if (data.GetType().GetProperty("total") != null)
-       {
-     if (decimal.TryParse(data.total.ToString(), out decimal montoTotal))
-   {
-    total = montoTotal;
-     }
-       }
-   }
-   catch { }
+       // Validar que request no sea null
+        if (request == null)
+     return BadRequest(new { success = false, message = "Datos requeridos" });
 
        // Validaciones
-  if (idUsuario <= 0)
+  if (request.IdUsuario <= 0)
        return BadRequest(new { success = false, message = "ID de usuario no válido" });
 
-        if (string.IsNullOrEmpty(reservasIds))
+        if (string.IsNullOrEmpty(request.ReservasIds))
         return BadRequest(new { success = false, message = "Debe especificar las reservas a confirmar" });
 
- if (string.IsNullOrEmpty(metodoPago))
+ if (string.IsNullOrEmpty(request.MetodoPago))
    return BadRequest(new { success = false, message = "Método de pago es requerido" });
 
-      if (total <= 0)
+      if (request.Total <= 0)
       return BadRequest(new { success = false, message = "El total debe ser mayor a 0" });
 
-      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(idUsuario, reservasIds, metodoPago, montoDescuento, total);
+      DataTable resultado = _reservaDAO.ConfirmarReservasSelectivas(
+     request.IdUsuario, 
+            request.ReservasIds, 
+            request.MetodoPago, 
+            request.MontoDescuento, 
+            request.Total);
 
     if (resultado == null || resultado.Rows.Count == 0)
         return BadRequest(new { success = false, message = "No se pudo procesar la confirmación" });
