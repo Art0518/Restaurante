@@ -11,7 +11,7 @@ namespace ReservasService.Data
 
    public PromocionDAO(string connectionString)
    {
-         _connectionString = connectionString;
+  _connectionString = connectionString;
       }
 
         // Listar todas las promociones activas
@@ -20,55 +20,53 @@ namespace ReservasService.Data
     DataTable dt = new DataTable();
    using (SqlConnection conn = new SqlConnection(_connectionString))
    {
-           conn.Open();
+       conn.Open();
        
-                // Query más flexible - sin filtrar por fecha primero para debug
-            string query = @"
-     SELECT 
+     // Query corregido con nombres de columnas reales
+   string query = @"
+   SELECT 
           IdPromocion,
+  IdRestaurante,
      Nombre,
-             Descripcion,
-  PorcentajeDescuento,
-       FechaInicio,
-          FechaFin,
-          Estado,
-      FechaCreacion
+ Descuento,
+  FechaInicio,
+  FechaFin,
+          Estado
    FROM [menu].[Promocion] 
         WHERE LOWER(Estado) = 'activa'
-          ORDER BY FechaCreacion DESC";
+ ORDER BY FechaInicio DESC";
 
-         using (SqlCommand cmd = new SqlCommand(query, conn))
+using (SqlCommand cmd = new SqlCommand(query, conn))
     {
  using (SqlDataAdapter adapter = new SqlDataAdapter(cmd))
  {
-   adapter.Fill(dt);
+ adapter.Fill(dt);
       }
-           }
+    }
    }
    return dt;
      }
 
   // Listar promociones activas y vigentes (con filtro de fecha)
-        public DataTable ListarPromocionesVigentes()
+    public DataTable ListarPromocionesVigentes()
      {
-            DataTable dt = new DataTable();
+       DataTable dt = new DataTable();
        using (SqlConnection conn = new SqlConnection(_connectionString))
  {
    conn.Open();
-                string query = @"
-    SELECT 
+      string query = @"
+SELECT 
        IdPromocion,
+          IdRestaurante,
       Nombre,
-         Descripcion,
-    PorcentajeDescuento,
+      Descuento,
        FechaInicio,
-                FechaFin,
-                Estado,
-        FechaCreacion
-          FROM [menu].[Promocion] 
-          WHERE LOWER(Estado) = 'activa' 
+         FechaFin,
+                Estado
+     FROM [menu].[Promocion] 
+     WHERE LOWER(Estado) = 'activa' 
             AND CAST(GETDATE() AS DATE) BETWEEN CAST(FechaInicio AS DATE) AND CAST(FechaFin AS DATE)
-          ORDER BY FechaFin DESC";
+ORDER BY FechaFin DESC";
 
 using (SqlCommand cmd = new SqlCommand(query, conn))
         {
@@ -77,14 +75,14 @@ using (SqlCommand cmd = new SqlCommand(query, conn))
          adapter.Fill(dt);
             }
     }
-     }
+  }
  return dt;
         }
 
         // Listar promociones válidas para carrito (si necesitas lógica específica)
-      public DataTable ListarPromocionesValidasParaCarrito(int idUsuario)
+    public DataTable ListarPromocionesValidasParaCarrito(int idUsuario)
    {
-         // Por ahora retorna las mismas promociones activas
+     // Por ahora retorna las mismas promociones activas
         // Puedes agregar lógica específica según tus necesidades
       return ListarPromocionesActivas();
  }

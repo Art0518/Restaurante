@@ -117,13 +117,13 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         // ?? LISTAR PROMOCIONES ACTIVAS
         // ============================================================
         [HttpGet("promociones")]
-        public IActionResult ListarPromocionesActivas()
+     public IActionResult ListarPromocionesActivas()
         {
         try
   {
  DataTable dt = _promocionDAO.ListarPromocionesActivas();
 
-              if (dt == null || dt.Rows.Count == 0)
+      if (dt == null || dt.Rows.Count == 0)
          return Ok(new { success = true, promociones = new List<object>() });
 
          // Convertir DataTable a lista de objetos
@@ -133,16 +133,16 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
       promociones.Add(new
  {
         IdPromocion = Convert.ToInt32(row["IdPromocion"]),
+    IdRestaurante = row["IdRestaurante"] != DBNull.Value ? Convert.ToInt32(row["IdRestaurante"]) : (int?)null,
           Nombre = row["Nombre"]?.ToString(),
-        Descripcion = row["Descripcion"]?.ToString(),
- PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+        Descuento = row["Descuento"] != DBNull.Value ? Convert.ToDecimal(row["Descuento"]) : 0,
           FechaInicio = row["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(row["FechaInicio"]).ToString("yyyy-MM-dd") : null,
-           FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
+         FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
     Estado = row["Estado"]?.ToString()
         });
          }
 
-         return Ok(new
+       return Ok(new
    {
       success = true,
      promociones = promociones
@@ -150,7 +150,7 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
   }
    catch (Exception ex)
     {
-     _logger.LogError($"Error al obtener promociones: {ex.Message}");
+   _logger.LogError($"Error al obtener promociones: {ex.Message}");
     return StatusCode(500, new { success = false, message = $"Error al obtener promociones: {ex.Message}" });
    }
         }
@@ -298,7 +298,7 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
    public IActionResult ListarPromocionesValidasParaCarrito(int idUsuario)
 {
   try
-          {
+        {
         if (idUsuario <= 0)
     return BadRequest(new { success = false, message = "ID de usuario no válido" });
 
@@ -310,27 +310,27 @@ Subtotal = resumenRow["Subtotal"] != DBNull.Value ? Convert.ToDecimal(resumenRow
         return Ok(new { success = true, promociones = new List<object>() });
 
      // Convertir DataTable a lista de objetos
-        var promociones = new List<object>();
+      var promociones = new List<object>();
       foreach (DataRow row in dt.Rows)
  {
    promociones.Add(new
  {
       IdPromocion = Convert.ToInt32(row["IdPromocion"]),
+   IdRestaurante = row["IdRestaurante"] != DBNull.Value ? Convert.ToInt32(row["IdRestaurante"]) : (int?)null,
         Nombre = row["Nombre"]?.ToString(),
-    Descripcion = row["Descripcion"]?.ToString(),
-   PorcentajeDescuento = row["PorcentajeDescuento"] != DBNull.Value ? Convert.ToDecimal(row["PorcentajeDescuento"]) : 0,
+    Descuento = row["Descuento"] != DBNull.Value ? Convert.ToDecimal(row["Descuento"]) : 0,
        FechaInicio = row["FechaInicio"] != DBNull.Value ? Convert.ToDateTime(row["FechaInicio"]).ToString("yyyy-MM-dd") : null,
-    FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
+  FechaFin = row["FechaFin"] != DBNull.Value ? Convert.ToDateTime(row["FechaFin"]).ToString("yyyy-MM-dd") : null,
   Estado = row["Estado"]?.ToString()
    });
 }
 
       return Ok(new
      {
-      success = true,
+    success = true,
    promociones = promociones
     });
-     }
+   }
    catch (Exception ex)
   {
    _logger.LogError($"Error al obtener promociones válidas: {ex.Message}");
