@@ -8,463 +8,800 @@ using System.Data;
 
 namespace FacturacionService.Controllers
 {
+    // ?? Prefijo base de la API
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/facturas")]
     public class FacturacionController : ControllerBase
     {
         private readonly ILogger<FacturacionController> _logger;
-        private readonly FacturaDAO _facturaDAO;
- private readonly DetalleFacturaDAO _detalleFacturaDAO;
+    private readonly FacturaDAO _facturaDAO;
+        private readonly DetalleFacturaDAO _detalleFacturaDAO;
+        private readonly string _connectionString;
 
-        public FacturacionController(ILogger<FacturacionController> logger, IConfiguration configuration)
-        {
-            _logger = logger;
-         var connectionString = configuration.GetConnectionString("DefaultConnection");
-            _facturaDAO = new FacturaDAO(connectionString);
-            _detalleFacturaDAO = new DetalleFacturaDAO(connectionString);
-   }
-
-        // ============================================================
-        // ? GENERAR FACTURA BÁSICA (Legacy - usando SP)
-    // ============================================================
-        [HttpPost("generar")]
-        public ActionResult<ApiResponse<Factura>> GenerarFactura([FromBody] GenerarFacturaDto request)
-        {
-        try
-     {
-   _logger.LogInformation($"REST: Generando factura para usuario {request.IdUsuario}");
-   if (request.IdUsuario <= 0)
-                 return BadRequest(new ApiResponse<Factura> { Success = false, Mensaje = "ID de usuario no válido" });
-     if (request.IdReserva <= 0)
-return BadRequest(new ApiResponse<Factura> { Success = false, Mensaje = "ID de reserva no válido" });
-
-    var factura = new Factura
-                {
-IdUsuario = request.IdUsuario,
-            IdReserva = request.IdReserva,
-      FechaEmision = DateTime.Now,
-             Subtotal = request.Subtotal,
-          IVA = request.Subtotal * 0.115m, // IVA 11.5%
-  Total = request.Subtotal * 1.115m,
-  Estado = "Emitida",
-     NumeroFactura = $"FAC-{DateTime.Now:yyyyMMddHHmmss}",
-  MetodoPago = request.MetodoPago
-      };
-
-      factura = _facturaDAO.CrearFactura(factura);
-  return Ok(new ApiResponse<Factura> { Success = true, Mensaje = "Factura generada correctamente", Data = factura });
-        }
-   catch (Exception ex)
-            {
-          _logger.LogError($"Error al generar factura: {ex.Message}");
-        return StatusCode(500, new ApiResponse<Factura> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
+      public FacturacionController(ILogger<FacturacionController> logger, IConfiguration configuration)
+    {
+    _logger = logger;
+   _connectionString = configuration.GetConnectionString("DefaultConnection") 
+         ?? throw new InvalidOperationException("Connection string not found");
+   _facturaDAO = new FacturaDAO(_connectionString);
+            _detalleFacturaDAO = new DetalleFacturaDAO(_connectionString);
         }
 
-     // ============================================================
-        // ?? GENERAR FACTURA DESDE CARRITO (Nuevo - Query SQL Directa)
-        // ============================================================
-        [HttpPost("generar-carrito")]
-        public ActionResult<ApiResponse<object>> GenerarFacturaCarrito([FromBody] GenerarFacturaCarritoDto request)
+        // ? GET /api/facturas
+        // Devuelve todas las facturas registradas
+        [HttpGet("")]
+        public IActionResult GetFacturas()
         {
-            try
-   {
-                _logger.LogInformation($"REST: Generando factura desde carrito para usuario {request.IdUsuario}");
-
-      DataTable resultado = _facturaDAO.GenerarFacturaCarrito(
- request.IdUsuario,
-       request.ReservasIds,
-         request.PromocionId,
-      request.MetodoPago
-             );
-
-         if (resultado == null || resultado.Rows.Count == 0)
-     {
-           return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "No se pudo generar la factura" });
-        }
-
-    var row = resultado.Rows[0];
-     string estado = row["Estado"].ToString();
-
-    if (estado == "ERROR")
-       {
-           return BadRequest(new ApiResponse<object> 
-        { 
-               Success = false, 
-              Mensaje = row["Mensaje"].ToString() 
-      });
-          }
-
-         var response = new
-            {
-          Estado = estado,
-        Mensaje = row["Mensaje"].ToString(),
-     IdFactura = Convert.ToInt32(row["IdFactura"]),
-        SubtotalBruto = Convert.ToDecimal(row["SubtotalBruto"]),
-    Descuento = Convert.ToDecimal(row["Descuento"]),
-            Subtotal = Convert.ToDecimal(row["Subtotal"]),
- IVA = Convert.ToDecimal(row["IVA"]),
-    Total = Convert.ToDecimal(row["Total"]),
-            PorcentajeDescuento = Convert.ToDecimal(row["PorcentajeDescuento"]),
-       CantidadReservas = Convert.ToInt32(row["CantidadReservas"]),
-       MetodoPago = row["MetodoPago"].ToString()
-           };
-
-                return Ok(new ApiResponse<object> 
-    { 
-        Success = true, 
-        Mensaje = "Factura generada correctamente", 
-        Data = response 
-     });
-            }
-    catch (Exception ex)
-            {
-          _logger.LogError($"Error al generar factura desde carrito: {ex.Message}");
-      return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
-}
-
-        // ============================================================
-        // ?? OBTENER FACTURA DETALLADA
-        // ============================================================
-    [HttpGet("{idFactura}/detallada")]
-        public ActionResult<ApiResponse<object>> ObtenerFacturaDetallada(int idFactura)
-     {
-            try
+         try
       {
-              _logger.LogInformation($"REST: Obteniendo factura detallada {idFactura}");
-   if (idFactura <= 0)
- return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de factura no válido" });
+   DataTable dt = _facturaDAO.ListarFacturas();
+  var facturas = ConvertirDataTableALista(dt);
 
-     DataSet dataSet = _facturaDAO.ObtenerFacturaDetallada(idFactura);
-
-   if (dataSet == null || dataSet.Tables.Count < 2)
-     return NotFound(new ApiResponse<object> { Success = false, Mensaje = "Factura no encontrada" });
-
-                var response = new
-                {
-      Factura = dataSet.Tables[0],
-   Detalles = dataSet.Tables[1]
-                };
-
-     return Ok(new ApiResponse<object> 
-                { 
-      Success = true, 
-               Mensaje = "Factura detallada obtenida correctamente", 
-        Data = response 
-      });
-    }
-          catch (Exception ex)
+     return Ok(new
+           {
+      success = true,
+    message = "Facturas obtenidas correctamente",
+    data = facturas,
+count = facturas.Count
+    });
+  }
+            catch (Exception ex)
             {
- _logger.LogError($"Error al obtener factura detallada: {ex.Message}");
-      return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-         }
-        }
-
-      // ============================================================
-        // ?? MARCAR FACTURA COMO PAGADA
-        // ============================================================
-        [HttpPost("marcar-pagada")]
-        public ActionResult<ApiResponse<object>> MarcarFacturaPagada([FromBody] MarcarPagadaDto request)
-        {
-   try
-       {
-  _logger.LogInformation($"REST: Marcando factura {request.IdFactura} como pagada");
-
-    DataTable resultado = _facturaDAO.MarcarFacturaPagada(request.IdFactura, request.MetodoPago);
-
-   if (resultado == null || resultado.Rows.Count == 0)
-       {
-   return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "No se pudo marcar la factura como pagada" });
+     _logger.LogError($"Error al listar facturas: {ex.Message}");
+    return StatusCode(500, new { success = false, message = "Error al listar facturas: " + ex.Message });
+            }
  }
 
-      var row = resultado.Rows[0];
- string estado = row["Estado"].ToString();
-
-         if (estado == "ERROR")
-       {
-      return BadRequest(new ApiResponse<object> 
-           { 
-                 Success = false, 
-  Mensaje = row["Mensaje"].ToString() 
-        });
-              }
-
-    var response = new
-{
-          Estado = estado,
-          Mensaje = row["Mensaje"].ToString(),
-          IdFactura = Convert.ToInt32(row["IdFactura"])
-     };
-
-          return Ok(new ApiResponse<object> 
-  { 
-    Success = true, 
-     Mensaje = "Factura marcada como pagada correctamente", 
-   Data = response 
-          });
-   }
-   catch (Exception ex)
-     {
-         _logger.LogError($"Error al marcar factura como pagada: {ex.Message}");
-         return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-    }
+  // ? GET /api/facturas/{id}
+        // Devuelve el detalle de una factura específica
+        [HttpGet("{id:int}")]
+        public IActionResult GetFactura(int id)
+        {
+   try
+ {
+if (id <= 0)
+           {
+             return BadRequest(new { success = false, message = "ID de factura no válido" });
      }
 
-        // ============================================================
-      // ?? LISTAR FACTURAS DE USUARIO
-        // ============================================================
-        [HttpGet("usuario/{idUsuario}")]
-        public ActionResult<ApiResponse<DataTable>> ListarFacturasUsuario(int idUsuario)
-        {
-     try
-    {
-                _logger.LogInformation($"REST: Listando facturas del usuario {idUsuario}");
-        if (idUsuario <= 0)
-     return BadRequest(new ApiResponse<DataTable> { Success = false, Mensaje = "ID de usuario no válido" });
+       DataTable dt = _facturaDAO.DetalleFactura(id);
+           if (dt.Rows.Count == 0)
+return NotFound(new { success = false, message = "Factura no encontrada" });
 
-              DataTable facturas = _facturaDAO.ListarFacturasUsuario(idUsuario);
-              return Ok(new ApiResponse<DataTable> 
-     { 
-                    Success = true, 
-     Mensaje = "Facturas del usuario listadas correctamente", 
-    Data = facturas 
-         });
-            }
-      catch (Exception ex)
-   {
-                _logger.LogError($"Error al listar facturas del usuario: {ex.Message}");
-   return StatusCode(500, new ApiResponse<DataTable> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
+ var facturaDetalle = ConvertirDataTableALista(dt);
+    return Ok(new
+             {
+        success = true,
+       message = "Detalle de factura obtenido correctamente",
+       data = facturaDetalle.FirstOrDefault()
+       });
+      }
+            catch (Exception ex)
+       {
+    _logger.LogError($"Error al obtener la factura: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Error al obtener la factura: " + ex.Message });
+       }
         }
 
-        // ============================================================
-        // ?? GENERAR FACTURA PARA RESERVAS CONFIRMADAS
-   // ============================================================
-        [HttpPost("generar-confirmadas")]
-  public ActionResult<ApiResponse<object>> GenerarFacturaReservasConfirmadas([FromBody] GenerarFacturaConfirmadasDto request)
+        // ? POST /api/facturas
+        // Crea una nueva factura a partir de una reserva
+        [HttpPost("")]
+        public IActionResult CrearFactura([FromBody] dynamic body)
         {
-            try
-          {
-     _logger.LogInformation($"REST: Generando factura de reservas confirmadas para usuario {request.IdUsuario}");
+        try
+        {
+              if (body == null)
+             {
+              return BadRequest(new { success = false, message = "Datos de factura requeridos" });
+           }
 
-       DataTable resultado = _facturaDAO.GenerarFacturaReservasConfirmadas(
-            request.IdUsuario,
-              request.ReservasIds,
-       request.TipoFactura ?? "CONFIRMADA"
-     );
+int idUsuario = (int)body.idUsuario;
+                int idReserva = (int)body.idReserva;
 
-         if (resultado == null || resultado.Rows.Count == 0)
+        if (idUsuario <= 0)
+                {
+           return BadRequest(new { success = false, message = "ID de usuario no válido" });
+}
+
+       if (idReserva <= 0)
+    {
+      return BadRequest(new { success = false, message = "ID de reserva no válido" });
+        }
+
+           DataTable dt = _facturaDAO.GenerarFactura(idUsuario, idReserva);
+         var facturaGenerada = ConvertirDataTableALista(dt);
+
+return Ok(new
+    {
+         success = true,
+          message = "Factura generada correctamente",
+  data = facturaGenerada.FirstOrDefault()
+     });
+   }
+       catch (Exception ex)
+        {
+                _logger.LogError($"Error al generar la factura: {ex.Message}");
+     return BadRequest(new { success = false, message = "Error al generar la factura: " + ex.Message });
+            }
+    }
+
+     // ? PUT /api/facturas/{id}/anular
+   // Anula una factura existente
+     [HttpPut("{id:int}/anular")]
+        public IActionResult AnularFactura(int id)
+  {
+ try
+  {
+           if (id <= 0)
       {
- return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "No se pudo generar la factura" });
+        return BadRequest(new { success = false, message = "ID de factura no válido" });
+    }
+
+    _facturaDAO.AnularFactura(id);
+      return Ok(new
+                {
+              success = true,
+      message = "Factura anulada correctamente",
+             idFactura = id
+                });
+            }
+            catch (Exception ex)
+         {
+      _logger.LogError($"Error al anular la factura: {ex.Message}");
+       return BadRequest(new { success = false, message = "Error al anular la factura: " + ex.Message });
+   }
+        }
+
+        // ? POST /api/facturas/calcular
+        // Calcula el subtotal, IVA y total sin guardar
+        [HttpPost("calcular")]
+        public IActionResult CalcularTotales([FromBody] Factura factura)
+      {
+            try
+ {
+    if (factura == null)
+        {
+     return BadRequest(new { success = false, message = "Datos de factura requeridos" });
+ }
+
+       if (factura.Subtotal < 0)
+    {
+           return BadRequest(new { success = false, message = "El subtotal no puede ser negativo" });
+      }
+
+    // Calcular IVA y Total
+              factura.IVA = factura.Subtotal * 0.115m; // IVA 11.5%
+      factura.Total = factura.Subtotal + factura.IVA;
+
+                return Ok(new
+        {
+    success = true,
+          message = "Totales calculados correctamente",
+         data = new
+          {
+               subtotal = factura.Subtotal,
+                 iva = factura.IVA,
+     total = factura.Total
+      }
+       });
+     }
+         catch (Exception ex)
+  {
+     _logger.LogError($"Error al calcular totales: {ex.Message}");
+    return BadRequest(new { success = false, message = "Error al calcular totales: " + ex.Message });
+    }
+ }
+
+        // ? NUEVO: POST /api/facturas/generar-carrito
+     // Genera una factura desde las reservas del carrito
+        [HttpPost("generar-carrito")]
+        public IActionResult GenerarFacturaCarrito([FromBody] dynamic body)
+  {
+  try
+            {
+    // Validaciones de entrada
+      if (body == null)
+          {
+      return BadRequest(new
+           {
+         success = false,
+     Estado = "ERROR",
+          Mensaje = "Datos requeridos para generar factura"
+           });
+    }
+
+                // Extraer y validar parámetros
+    if (body.IdUsuario == null)
+          {
+             return BadRequest(new
+         {
+        success = false,
+     Estado = "ERROR",
+            Mensaje = "IdUsuario es requerido"
+          });
+           }
+
+       if (body.ReservasIds == null)
+   {
+    return BadRequest(new
+          {
+      success = false,
+    Estado = "ERROR",
+   Mensaje = "ReservasIds es requerido"
+  });
+    }
+
+     int idUsuario = Convert.ToInt32(body.IdUsuario);
+    string reservasIds = body.ReservasIds.ToString();
+ int? promocionId = body.PromocionId != null ? Convert.ToInt32(body.PromocionId) : (int?)null;
+           string metodoPago = body.MetodoPago?.ToString();
+
+     // Validaciones adicionales
+            if (idUsuario <= 0)
+        {
+      return BadRequest(new
+    {
+         success = false,
+  Estado = "ERROR",
+            Mensaje = "ID de usuario no válido"
+     });
           }
 
-         var row = resultado.Rows[0];
-    string estado = row["Estado"].ToString();
-
-           if (estado == "ERROR")
-    {
-            return BadRequest(new ApiResponse<object> 
-       { 
-      Success = false, 
-  Mensaje = row["Mensaje"].ToString() 
-         });
-   }
-
-  var response = new
-  {
-     Estado = estado,
-           Mensaje = row["Mensaje"].ToString(),
-        IdFactura = Convert.ToInt32(row["IdFactura"]),
-      SubtotalBruto = Convert.ToDecimal(row["SubtotalBruto"]),
-          Subtotal = Convert.ToDecimal(row["Subtotal"]),
-  IVA = Convert.ToDecimal(row["IVA"]),
-          Total = Convert.ToDecimal(row["Total"]),
-       CantidadReservas = Convert.ToInt32(row["CantidadReservas"]),
-        MetodoPago = row["MetodoPago"].ToString()
-       };
-
-  return Ok(new ApiResponse<object> 
-  { 
-   Success = true, 
-       Mensaje = "Factura de reservas confirmadas generada correctamente", 
-   Data = response 
-      });
-       }
-      catch (Exception ex)
-       {
-     _logger.LogError($"Error al generar factura de confirmadas: {ex.Message}");
-       return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-      }
-        }
-
-        // ============================================================
-        // ? LISTAR TODAS LAS FACTURAS
-        // ============================================================
-        [HttpGet("listar")]
-        public ActionResult<ApiResponse<List<Factura>>> ListarFacturas()
-    {
-            try
-       {
-  _logger.LogInformation("REST: Listando todas las facturas");
-   var facturas = _facturaDAO.ListarTodasFacturas();
-        return Ok(new ApiResponse<List<Factura>> { Success = true, Mensaje = "Facturas listadas correctamente", Data = facturas });
+    if (string.IsNullOrWhiteSpace(reservasIds))
+     {
+  return BadRequest(new
+               {
+         success = false,
+              Estado = "ERROR",
+             Mensaje = "Debe seleccionar al menos una reserva"
+             });
          }
-            catch (Exception ex)
-            {
-   _logger.LogError($"Error al listar facturas: {ex.Message}");
-                return StatusCode(500, new ApiResponse<List<Factura>> { Success = false, Mensaje = $"Error: {ex.Message}" });
-       }
-        }
 
-     // ============================================================
- // ? OBTENER FACTURA POR ID
-        // ============================================================
-        [HttpGet("{idFactura}")]
-public ActionResult<ApiResponse<FacturaDetalladaDto>> ObtenerFactura(int idFactura)
-{
+                // Llamar a la lógica de negocio
+    DataTable resultado = _facturaDAO.GenerarFacturaCarrito(idUsuario, reservasIds, promocionId, metodoPago);
+
+   if (resultado != null && resultado.Rows.Count > 0)
+     {
+         DataRow row = resultado.Rows[0];
+                    string estado = row["Estado"].ToString();
+
+             if (estado == "SUCCESS")
+         {
+             return Ok(new
+ {
+         success = true,
+    Estado = "SUCCESS",
+     Mensaje = row["Mensaje"].ToString(),
+  IdFactura = Convert.ToInt32(row["IdFactura"]),
+      SubtotalBruto = Convert.ToDecimal(row["SubtotalBruto"]),
+         Descuento = Convert.ToDecimal(row["Descuento"]),
+ Subtotal = Convert.ToDecimal(row["Subtotal"]),
+         IVA = Convert.ToDecimal(row["IVA"]),
+   Total = Convert.ToDecimal(row["Total"]),
+          PorcentajeDescuento = Convert.ToDecimal(row["PorcentajeDescuento"]),
+        CantidadReservas = Convert.ToInt32(row["CantidadReservas"]),
+          MetodoPago = row["MetodoPago"].ToString()
+     });
+             }
+      else
+       {
+       return BadRequest(new
+     {
+             success = false,
+  Estado = "ERROR",
+     Mensaje = row["Mensaje"].ToString()
+        });
+                }
+                }
+   else
+          {
+          return BadRequest(new
+            {
+         success = false,
+         Estado = "ERROR",
+    Mensaje = "No se recibió respuesta del servidor"
+        });
+        }
+    }
+   catch (FormatException ex)
+            {
+     _logger.LogError($"Formato de datos incorrecto: {ex.Message}");
+     return BadRequest(new
+      {
+      success = false,
+      Estado = "ERROR",
+         Mensaje = "Formato de datos incorrecto: " + ex.Message
+      });
+            }
+catch (Exception ex)
+      {
+ _logger.LogError($"Error generando la factura: {ex.Message}");
+         return BadRequest(new
+        {
+          success = false,
+           Estado = "ERROR",
+         Mensaje = "Error generando la factura: " + ex.Message
+              });
+            }
+    }
+
+  // ? NUEVO: POST /api/facturas/generar-confirmadas
+        // Genera una factura específicamente para reservas confirmadas
+        [HttpPost("generar-confirmadas")]
+        public IActionResult GenerarFacturaReservasConfirmadas([FromBody] dynamic body)
+     {
             try
-            {
-_logger.LogInformation($"REST: Obteniendo factura {idFactura}");
-           if (idFactura <= 0)
-          return BadRequest(new ApiResponse<FacturaDetalladaDto> { Success = false, Mensaje = "ID de factura no válido" });
+        {
+    // Validaciones de entrada
+   if (body == null)
+     {
+             return BadRequest(new
+    {
+       success = false,
+  Estado = "ERROR",
+   Mensaje = "Datos requeridos para generar factura"
+   });
+ }
 
-                var factura = _facturaDAO.ObtenerFacturaById(idFactura);
-      if (factura == null)
-    return NotFound(new ApiResponse<FacturaDetalladaDto> { Success = false, Mensaje = "Factura no encontrada" });
+   // Extraer y validar parámetros
+                if (body.IdUsuario == null)
+        {
+         return BadRequest(new
+           {
+  success = false,
+            Estado = "ERROR",
+    Mensaje = "IdUsuario es requerido"
+      });
+          }
 
-       var detalles = _detalleFacturaDAO.ObtenerDetallesFactura(idFactura);
-       var result = new FacturaDetalladaDto { Factura = factura, Detalles = detalles };
-     return Ok(new ApiResponse<FacturaDetalladaDto> { Success = true, Mensaje = "Factura obtenida correctamente", Data = result });
-}
-            catch (Exception ex)
+                if (body.ReservasIds == null)
+                {
+          return BadRequest(new
+   {
+          success = false,
+             Estado = "ERROR",
+  Mensaje = "ReservasIds es requerido"
+    });
+    }
+
+      int idUsuario = Convert.ToInt32(body.IdUsuario);
+                string reservasIds = body.ReservasIds.ToString();
+         string tipoFactura = body.TipoFactura?.ToString() ?? "CONFIRMADA";
+
+  // Validaciones adicionales
+if (idUsuario <= 0)
+        {
+     return BadRequest(new
+      {
+   success = false,
+  Estado = "ERROR",
+        Mensaje = "ID de usuario no válido"
+                });
+    }
+
+                if (string.IsNullOrWhiteSpace(reservasIds))
+    {
+        return BadRequest(new
   {
-              _logger.LogError($"Error al obtener factura: {ex.Message}");
-  return StatusCode(500, new ApiResponse<FacturaDetalladaDto> { Success = false, Mensaje = $"Error: {ex.Message}" });
+              success = false,
+           Estado = "ERROR",
+        Mensaje = "Debe seleccionar al menos una reserva confirmada"
+    });
+          }
+
+      // ? Llamar a la nueva función para reservas confirmadas
+     DataTable resultado = _facturaDAO.GenerarFacturaReservasConfirmadas(idUsuario, reservasIds, tipoFactura);
+
+             if (resultado != null && resultado.Rows.Count > 0)
+       {
+         DataRow row = resultado.Rows[0];
+  string estado = row["Estado"].ToString();
+
+      if (estado == "SUCCESS")
+       {
+          return Ok(new
+   {
+     success = true,
+        Estado = "SUCCESS",
+          Mensaje = row["Mensaje"].ToString(),
+              IdFactura = Convert.ToInt32(row["IdFactura"]),
+     SubtotalBruto = Convert.ToDecimal(row["SubtotalBruto"]),
+            Subtotal = Convert.ToDecimal(row["Subtotal"]),
+      IVA = Convert.ToDecimal(row["IVA"]),
+      Total = Convert.ToDecimal(row["Total"]),
+             CantidadReservas = Convert.ToInt32(row["CantidadReservas"]),
+        MetodoPago = row["MetodoPago"].ToString(),
+          TipoFactura = "CONFIRMADA",
+     EstadoFactura = "Confirmada"
+            });
+              }
+          else
+     {
+     return BadRequest(new
+      {
+                 success = false,
+    Estado = "ERROR",
+          Mensaje = row["Mensaje"].ToString()
+      });
+  }
+                }
+  else
+                {
+         return BadRequest(new
+          {
+                success = false,
+         Estado = "ERROR",
+         Mensaje = "No se recibió respuesta del servidor"
+       });
        }
+            }
+     catch (FormatException ex)
+        {
+    _logger.LogError($"Formato de datos incorrecto: {ex.Message}");
+          return BadRequest(new
+  {
+         success = false,
+         Estado = "ERROR",
+        Mensaje = "Formato de datos incorrecto: " + ex.Message
+         });
+     }
+            catch (Exception ex)
+            {
+          _logger.LogError($"Error generando la factura de confirmadas: {ex.Message}");
+    return BadRequest(new
+                {
+  success = false,
+                Estado = "ERROR",
+            Mensaje = "Error generando la factura de confirmadas: " + ex.Message
+        });
+   }
         }
 
- // ============================================================
-        // ? MARCAR FACTURA COMO PAGADA (Legacy)
-        // ============================================================
-   [HttpPut("{idFactura}/marcar-pagada")]
-    public ActionResult<ApiResponse<string>> MarcarFacturaPagadaLegacy(int idFactura, [FromBody] MarcarPagadaDto request)
+        // ? NUEVO: GET /api/facturas/detallada/{id}
+        // Obtiene factura con todos sus detalles
+        [HttpGet("detallada/{id:int}")]
+        public IActionResult GetFacturaDetallada(int id)
+  {
+ try
+     {
+    if (id <= 0)
+    {
+       return BadRequest(new
+         {
+              success = false,
+       message = "ID de factura no válido"
+    });
+         }
+
+         DataSet ds = _facturaDAO.ObtenerFacturaDetallada(id);
+
+      if (ds != null && ds.Tables.Count >= 2)
+         {
+         DataTable facturaTable = ds.Tables[0];
+           DataTable detallesTable = ds.Tables[1];
+
+          if (facturaTable.Rows.Count > 0)
+        {
+return Ok(new
+      {
+     success = true,
+      message = "Factura detallada obtenida correctamente",
+   factura = ConvertirDataTableALista(facturaTable),
+          detalles = ConvertirDataTableALista(detallesTable)
+   });
+   }
+    else
+        {
+        return NotFound(new { success = false, message = "Factura no encontrada" });
+ }
+      }
+     else
+     {
+    return BadRequest(new
+        {
+        success = false,
+          message = "Error obteniendo los detalles de la factura"
+          });
+       }
+ }
+            catch (Exception ex)
+      {
+  _logger.LogError($"Error al obtener factura detallada: {ex.Message}");
+     return StatusCode(500, new { success = false, message = "Error al obtener factura detallada: " + ex.Message });
+       }
+  }
+
+     // ? NUEVO: POST /api/facturas/marcar-pagada
+        // Marca una factura como pagada
+        [HttpPost("marcar-pagada")]
+  public IActionResult MarcarFacturaPagada([FromBody] dynamic body)
+        {
+ try
+            {
+// Validaciones de entrada
+            if (body == null)
+              {
+           return BadRequest(new
+   {
+            success = false,
+          Estado = "ERROR",
+                Mensaje = "Datos requeridos para marcar factura como pagada"
+          });
+          }
+
+       if (body.IdFactura == null)
+      {
+  return BadRequest(new
+  {
+          success = false,
+        Estado = "ERROR",
+            Mensaje = "IdFactura es requerido"
+           });
+         }
+
+         if (body.MetodoPago == null)
+      {
+        return BadRequest(new
+         {
+success = false,
+    Estado = "ERROR",
+             Mensaje = "MetodoPago es requerido"
+   });
+}
+
+             int idFactura = Convert.ToInt32(body.IdFactura);
+            string metodoPago = body.MetodoPago.ToString();
+
+        // Validaciones adicionales
+       if (idFactura <= 0)
+            {
+return BadRequest(new
+       {
+ success = false,
+           Estado = "ERROR",
+                 Mensaje = "ID de factura no válido"
+                    });
+        }
+
+                if (string.IsNullOrWhiteSpace(metodoPago))
+          {
+     return BadRequest(new
+        {
+         success = false,
+      Estado = "ERROR",
+       Mensaje = "Método de pago no puede estar vacío"
+        });
+          }
+
+     // Llamar a la lógica de negocio
+     DataTable resultado = _facturaDAO.MarcarFacturaPagada(idFactura, metodoPago);
+
+   if (resultado != null && resultado.Rows.Count > 0)
+        {
+       DataRow row = resultado.Rows[0];
+             string estado = row["Estado"].ToString();
+
+        if (estado == "SUCCESS")
+        {
+         return Ok(new
+        {
+   success = true,
+              Estado = "SUCCESS",
+      Mensaje = row["Mensaje"].ToString(),
+             IdFactura = Convert.ToInt32(row["IdFactura"])
+        });
+       }
+     else
+             {
+   return BadRequest(new
+          {
+          success = false,
+    Estado = "ERROR",
+   Mensaje = row["Mensaje"].ToString()
+     });
+ }
+    }
+   else
+       {
+         return BadRequest(new
+      {
+      success = false,
+            Estado = "ERROR",
+ Mensaje = "No se recibió respuesta del servidor"
+               });
+        }
+       }
+   catch (Exception ex)
+            {
+            _logger.LogError($"Error marcando la factura como pagada: {ex.Message}");
+     return BadRequest(new
+       {
+           success = false,
+         Estado = "ERROR",
+     Mensaje = "Error marcando la factura como pagada: " + ex.Message
+     });
+          }
+      }
+
+      // ? NUEVO: GET /api/facturas/usuario/{id}
+        [HttpGet("usuario/{id:int}")]
+        public IActionResult GetFacturasUsuario(int id)
+        {
+     try
+     {
+                if (id <= 0)
+     {
+             return BadRequest(new
+        {
+              success = false,
+   message = "ID de usuario no válido"
+    });
+         }
+
+                DataTable dt = _facturaDAO.ListarFacturasUsuario(id);
+ var facturasUsuario = ConvertirDataTableALista(dt);
+
+     return Ok(new
+ {
+          success = true,
+    message = "Facturas del usuario obtenidas correctamente",
+      facturas = facturasUsuario,
+           count = facturasUsuario.Count,
+             idUsuario = id
+       });
+      }
+            catch (Exception ex)
+        {
+    _logger.LogError($"Error al listar facturas del usuario: {ex.Message}");
+                return StatusCode(500, new { success = false, message = "Error al listar facturas del usuario: " + ex.Message });
+  }
+        }
+
+     // ? NUEVO: GET /api/facturas/estadisticas/{idUsuario}
+        [HttpGet("estadisticas/{idUsuario:int}")]
+   public IActionResult GetEstadisticasFacturacionUsuario(int idUsuario)
         {
         try
             {
-          _logger.LogInformation($"REST: Marcando factura {idFactura} como pagada (legacy)");
- if (idFactura <= 0)
-       return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "ID de factura no válido" });
+  if (idUsuario <= 0)
+    {
+                return BadRequest(new
+       {
+         success = false,
+       message = "ID de usuario no válido"
+                });
+                }
 
-           var resultado = _facturaDAO.MarcarComoPageda(idFactura, request.MetodoPago);
-      if (!resultado)
-       return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "No se pudo marcar la factura como pagada" });
+     DataTable dt = _facturaDAO.ListarFacturasUsuario(idUsuario);
+             var facturas = ConvertirDataTableALista(dt);
 
-       return Ok(new ApiResponse<string> { Success = true, Mensaje = "Factura marcada como pagada", Data = "Pagada" });
-            }
-            catch (Exception ex)
+        var estadisticas = new
+           {
+        totalFacturas = facturas.Count,
+  facturasPagadas = facturas.Count(f => f.ContainsKey("Estado") && f["Estado"].ToString() == "Pagada"),
+           facturasEmitidas = facturas.Count(f => f.ContainsKey("Estado") && f["Estado"].ToString() == "Emitida"),
+        facturasAnuladas = facturas.Count(f => f.ContainsKey("Estado") && f["Estado"].ToString() == "Anulada"),
+                 montoTotal = facturas.Where(f => f.ContainsKey("Total")).Sum(f => Convert.ToDecimal(f["Total"])),
+      montoTotalPagado = facturas.Where(f => f.ContainsKey("Estado") && f["Estado"].ToString() == "Pagada" && f.ContainsKey("Total")).Sum(f => Convert.ToDecimal(f["Total"])),
+      montoPendiente = facturas.Where(f => f.ContainsKey("Estado") && f["Estado"].ToString() == "Emitida" && f.ContainsKey("Total")).Sum(f => Convert.ToDecimal(f["Total"]))
+             };
+
+         return Ok(new
             {
-        _logger.LogError($"Error al marcar como pagada: {ex.Message}");
-                return StatusCode(500, new ApiResponse<string> { Success = false, Mensaje = $"Error: {ex.Message}" });
-      }
-     }
-
-        // ============================================================
-        // ? ANULAR FACTURA
-        // ============================================================
-     [HttpPut("{idFactura}/anular")]
-        public ActionResult<ApiResponse<string>> AnularFactura(int idFactura, [FromBody] AnularFacturaDto request)
-        {
-       try
-      {
-                _logger.LogInformation($"REST: Anulando factura {idFactura}");
-           if (idFactura <= 0)
-     return BadRequest(new ApiResponse<string> { Success = false, Mensaje = "ID de factura no válido" });
-
-        _facturaDAO.AnularFactura(idFactura);
-          return Ok(new ApiResponse<string> { Success = true, Mensaje = "Factura anulada correctamente", Data = "Anulada" });
+           success = true,
+     message = "Estadísticas obtenidas correctamente",
+    idUsuario = idUsuario,
+         estadisticas = estadisticas
+           });
+       }
+         catch (Exception ex)
+   {
+         _logger.LogError($"Error al obtener estadísticas: {ex.Message}");
+      return StatusCode(500, new { success = false, message = "Error al obtener estadísticas: " + ex.Message });
             }
-            catch (Exception ex)
+        }
+
+     // ? NUEVO: GET /api/facturas/validar-estado/{estado}
+        [HttpGet("validar-estado/{estado}")]
+        public IActionResult ValidarEstadoFactura(string estado)
+     {
+    try
+            {
+        if (string.IsNullOrWhiteSpace(estado))
           {
-    _logger.LogError($"Error al anular factura: {ex.Message}");
- return StatusCode(500, new ApiResponse<string> { Success = false, Mensaje = $"Error: {ex.Message}" });
-}
+ return BadRequest(new
+  {
+    success = false,
+      message = "Estado no puede estar vacío"
+          });
         }
 
-        // ============================================================
-   // ? CALCULAR TOTALES
-        // ============================================================
-        [HttpPost("calcular-totales")]
-        public ActionResult<ApiResponse<Factura>> CalcularTotales([FromBody] CalcularTotalesDto request)
-      {
-  try
-            {
- _logger.LogInformation("REST: Calculando totales de factura");
-   if (request.Factura == null)
-   return BadRequest(new ApiResponse<Factura> { Success = false, Mensaje = "Factura no proporcionada" });
+          // Validar estado (simulación - en el original usa facturaLogica)
+       var estadosValidos = new string[] { "Emitida", "Pagada", "Anulada" };
+  bool esValido = estadosValidos.Contains(estado, StringComparer.OrdinalIgnoreCase);
 
-    var factura = request.Factura;
-       float porcentajeIVA = request.PorcentajeIva > 0 ? request.PorcentajeIva : 0.115f; // IVA 11.5%
-      factura.IVA = factura.Subtotal * (decimal)porcentajeIVA;
-              factura.Total = factura.Subtotal + factura.IVA;
-
-           return Ok(new ApiResponse<Factura> { Success = true, Mensaje = "Totales calculados correctamente", Data = factura });
-        }
-            catch (Exception ex)
-        {
-      _logger.LogError($"Error al calcular totales: {ex.Message}");
-     return StatusCode(500, new ApiResponse<Factura> { Success = false, Mensaje = $"Error: {ex.Message}" });
+                return Ok(new
+         {
+     success = true,
+   message = esValido ? "Estado válido" : "Estado no válido",
+          estado = estado,
+            esValido = esValido,
+                  estadosValidos = estadosValidos
+ });
             }
+  catch (Exception ex)
+   {
+      _logger.LogError($"Error al validar estado: {ex.Message}");
+        return StatusCode(500, new { success = false, message = "Error al validar estado: " + ex.Message });
+            }
+  }
+
+        // ============================================================
+        // ??? MÉTODO AUXILIAR PARA CONVERTIR DATATABLE
+     // ============================================================
+        private List<Dictionary<string, object>> ConvertirDataTableALista(DataTable table)
+        {
+            var lista = new List<Dictionary<string, object>>();
+
+            if (table == null || table.Rows.Count == 0)
+     {
+          return lista;
+  }
+
+        foreach (DataRow row in table.Rows)
+     {
+       var diccionario = new Dictionary<string, object>();
+          foreach (DataColumn column in table.Columns)
+{
+        diccionario[column.ColumnName] = row[column] == DBNull.Value ? null : row[column];
+       }
+           lista.Add(diccionario);
+}
+
+       return lista;
+   }
+
+        // ============================================================
+        // ??? MÉTODO AUXILIAR PARA MANEJAR ERRORES DE CONVERSIÓN
+        // ============================================================
+ private IActionResult CrearRespuestaError(string mensaje, string estado = "ERROR")
+  {
+         return BadRequest(new
+   {
+     success = false,
+            Estado = estado,
+           Mensaje = mensaje,
+  timestamp = DateTime.Now
+       });
         }
-    }
 
-    // ============================================================
-    // DTOs
-    // ============================================================
-    public class GenerarFacturaDto
-    {
-    public int IdUsuario { get; set; }
-        public int IdReserva { get; set; }
-        public decimal Subtotal { get; set; }
- public string MetodoPago { get; set; } = "";
-    }
+        // ============================================================
+        // ??? MÉTODO AUXILIAR PARA VALIDAR DATOS DE ENTRADA
+        // ============================================================
+        private string ValidarDatosEntrada(dynamic body, string[] camposRequeridos)
+        {
+       if (body == null)
+{
+       return "Datos requeridos";
+            }
 
-    public class GenerarFacturaCarritoDto
-    {
-  public int IdUsuario { get; set; }
-        public string ReservasIds { get; set; } = "";
-        public int? PromocionId { get; set; }
-        public string MetodoPago { get; set; } = "";
-    }
+            foreach (string campo in camposRequeridos)
+     {
+     try
+  {
+      var valor = body.GetType().GetProperty(campo)?.GetValue(body, null);
+      if (valor == null)
+         {
+  return $"El campo {campo} es requerido";
+          }
+   }
+ catch
+          {
+  return $"El campo {campo} es requerido";
+          }
+   }
 
-    public class GenerarFacturaConfirmadasDto
-    {
-        public int IdUsuario { get; set; }
-        public string ReservasIds { get; set; } = "";
-        public string? TipoFactura { get; set; }
-    }
-
-    public class MarcarPagadaDto
-    {
-        public int IdFactura { get; set; }
-        public string MetodoPago { get; set; } = "";
-        public string FechaPago { get; set; } = "";
-    }
-
-    public class AnularFacturaDto
-    {
-  public string Motivo { get; set; } = "";
-    }
-
-    public class CalcularTotalesDto
-    {
-        public Factura? Factura { get; set; }
-     public float PorcentajeIva { get; set; }
-    }
-
-    public class FacturaDetalladaDto
-    {
-        public Factura? Factura { get; set; }
-public List<DetalleFactura>? Detalles { get; set; }
+         return null; // No hay errores
+  }
     }
 }

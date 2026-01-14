@@ -1,320 +1,299 @@
 using Microsoft.AspNetCore.Mvc;
-using FacturacionService.Data;
 using FacturacionService.Models;
+using FacturacionService.Data;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 
 namespace FacturacionService.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/detallefactura")]
     public class DetalleFacturaController : ControllerBase
     {
-        private readonly ILogger<DetalleFacturaController> _logger;
-      private readonly DetalleFacturaDAO _detalleDAO;
+    private readonly ILogger<DetalleFacturaController> _logger;
+        private readonly DetalleFacturaDAO _detalleDAO;
+        private readonly string _connectionString;
 
-      public DetalleFacturaController(ILogger<DetalleFacturaController> logger, IConfiguration configuration)
+    public DetalleFacturaController(ILogger<DetalleFacturaController> logger, IConfiguration configuration)
         {
             _logger = logger;
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-    _detalleDAO = new DetalleFacturaDAO(connectionString);
+  _connectionString = configuration.GetConnectionString("DefaultConnection") 
+         ?? throw new InvalidOperationException("Connection string not found");
+      _detalleDAO = new DetalleFacturaDAO(_connectionString);
         }
 
-        // ============================================================
-    // ? GET: Listar detalles por factura
-        // ============================================================
-    [HttpGet("factura/{idFactura:int}")]
-  public ActionResult<ApiResponse<object>> ListarPorFactura(int idFactura)
+   // ? GET: /api/detallefactura/factura/{idFactura}
+        [HttpGet("factura/{idFactura:int}")]
+        public IActionResult ListarPorFactura(int idFactura)
         {
-     try
-   {
-           if (idFactura <= 0)
-      {
-          return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de factura no válido" });
-}
-
-    DataTable dt = _detalleDAO.ListarDetallesPorFactura(idFactura);
-     var detalles = ConvertirDataTableALista(dt);
-
-         return Ok(new ApiResponse<object>
-         {
-     Success = true,
- Mensaje = "Detalles obtenidos correctamente",
-   Data = new
-              {
- IdFactura = idFactura,
-    Detalles = detalles,
-                Count = detalles.Count
-  }
-        });
-            }
-         catch (Exception ex)
-       {
-       _logger.LogError($"Error al obtener detalles de factura: {ex.Message}");
-           return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-  }
-  }
-
-        // ============================================================
- // ? GET: Obtener detalle específico por ID
-        // ============================================================
-        [HttpGet("{id:int}")]
-        public ActionResult<ApiResponse<object>> ObtenerDetalle(int id)
-        {
-     try
-   {
-    if (id <= 0)
-              {
-             return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de detalle no válido" });
-         }
-
-           DataTable dt = _detalleDAO.ObtenerDetallePorId(id);
-     var detalles = ConvertirDataTableALista(dt);
-
-    if (detalles.Count == 0)
-           {
-    return NotFound(new ApiResponse<object> { Success = false, Mensaje = "Detalle no encontrado" });
- }
-
-       return Ok(new ApiResponse<object>
+       try
     {
-     Success = true,
-               Mensaje = "Detalle obtenido correctamente",
-           Data = detalles[0]
-     });
-    }
-        catch (Exception ex)
-     {
-          _logger.LogError($"Error al obtener detalle: {ex.Message}");
-       return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
-    }
-
-     // ============================================================
-        // ? POST: Crear detalle de factura
-        // ============================================================
-    [HttpPost("")]
-        public ActionResult<ApiResponse<object>> CrearDetalle([FromBody] CrearDetalleDto body)
-     {
-     try
-      {
-     if (body == null)
-        {
-   return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "Datos del detalle requeridos" });
+        if (idFactura <= 0)
+       {
+         return BadRequest(new { success = false, message = "ID de factura no válido" });
           }
 
-  // Validar campos requeridos
-         if (body.IdFactura <= 0 || body.IdReserva <= 0)
-     {
-      return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "IDs de factura y reserva deben ser válidos" });
-                }
+           DataTable dt = _detalleDAO.ListarDetallesPorFactura(idFactura);
+       var detalles = ConvertirDataTableALista(dt);
 
-         if (body.Cantidad <= 0)
-           {
-       return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "La cantidad debe ser mayor a cero" });
-                }
+          return Ok(new
+    {
+          success = true,
+  message = "Detalles obtenidos correctamente",
+        idFactura = idFactura,
+           detalles = detalles,
+           count = detalles.Count
+     });
+         }
+      catch (Exception ex)
+        {
+    _logger.LogError($"Error al obtener detalles de factura: {ex.Message}");
+        return StatusCode(500, new { success = false, message = "Error al obtener detalles de factura: " + ex.Message });
+            }
+        }
 
-        if (body.PrecioUnitario < 0)
+        // ? GET: /api/detallefactura/{id}
+        [HttpGet("{id:int}")]
+ public IActionResult ObtenerDetalle(int id)
+        {
+      try
+   {
+      if (id <= 0)
+{
+       return BadRequest(new { success = false, message = "ID de detalle no válido" });
+  }
+
+             DataTable dt = _detalleDAO.ObtenerDetallePorId(id);
+        var detalles = ConvertirDataTableALista(dt);
+
+            if (detalles.Count == 0)
       {
-             return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "El precio unitario no puede ser negativo" });
+        return NotFound(new { success = false, message = "Detalle no encontrado" });
+           }
+
+      return Ok(new
+       {
+    success = true,
+      message = "Detalle obtenido correctamente",
+        detalle = detalles[0]
+    });
+         }
+     catch (Exception ex)
+   {
+           _logger.LogError($"Error al obtener detalle: {ex.Message}");
+          return StatusCode(500, new { success = false, message = "Error al obtener detalle: " + ex.Message });
+            }
    }
 
- _detalleDAO.InsertarDetalle(body.IdFactura, body.IdReserva, body.Descripcion, body.Cantidad, body.PrecioUnitario);
-
-return Ok(new ApiResponse<object>
-                {
-         Success = true,
-   Mensaje = "Detalle de factura creado correctamente",
-        Data = new
+     // ? POST: /api/detallefactura
+  [HttpPost("")]
+        public IActionResult CrearDetalle([FromBody] dynamic body)
+     {
+            try
+         {
+     if (body == null)
     {
-      IdFactura = body.IdFactura,
-   IdReserva = body.IdReserva,
-Subtotal = body.Cantidad * body.PrecioUnitario
-    }
-        });
- }
-          catch (Exception ex)
-            {
-         _logger.LogError($"Error al crear detalle de factura: {ex.Message}");
-        return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-    }
-        }
+       return BadRequest(new { success = false, message = "Datos del detalle requeridos" });
+            }
 
-        // ============================================================
-        // ? PUT: Actualizar detalle de factura
-   // ============================================================
-    [HttpPut("{id:int}")]
-        public ActionResult<ApiResponse<object>> ActualizarDetalle(int id, [FromBody] ActualizarDetalleDto body)
-        {
-         try
-      {
-         if (id <= 0)
-        {
-     return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de detalle no válido" });
+                // Validar y extraer datos
+      if (body.IdFactura == null || body.IdReserva == null ||
+     body.Descripcion == null || body.Cantidad == null ||
+   body.PrecioUnitario == null)
+       {
+return BadRequest(new { success = false, message = "Faltan campos requeridos: IdFactura, IdReserva, Descripcion, Cantidad, PrecioUnitario" });
+           }
+
+      int idFactura = Convert.ToInt32(body.IdFactura);
+                int idReserva = Convert.ToInt32(body.IdReserva);
+     string descripcion = body.Descripcion.ToString();
+      int cantidad = Convert.ToInt32(body.Cantidad);
+   decimal precioUnitario = Convert.ToDecimal(body.PrecioUnitario);
+
+// Validaciones
+        if (idFactura <= 0 || idReserva <= 0)
+           {
+           return BadRequest(new { success = false, message = "IDs de factura y reserva deben ser válidos" });
       }
 
-    if (body == null)
-     {
-               return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "Datos para actualizar requeridos" });
-}
-
-     // Verificar que el detalle existe
-      DataTable dtExiste = _detalleDAO.ObtenerDetallePorId(id);
-     if (dtExiste.Rows.Count == 0)
-            {
-return NotFound(new ApiResponse<object> { Success = false, Mensaje = "Detalle no encontrado" });
-          }
-
-   // Validaciones
- if (body.Cantidad <= 0)
-       {
-         return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "La cantidad debe ser mayor a cero" });
+    if (cantidad <= 0)
+                {
+  return BadRequest(new { success = false, message = "La cantidad debe ser mayor a cero" });
        }
 
-     if (body.PrecioUnitario < 0)
-        {
-        return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "El precio unitario no puede ser negativo" });
-        }
-
-     _detalleDAO.ActualizarDetalle(id, body.Descripcion, body.Cantidad, body.PrecioUnitario);
-
-   return Ok(new ApiResponse<object>
+if (precioUnitario < 0)
     {
-           Success = true,
-     Mensaje = "Detalle actualizado correctamente",
-           Data = new
-            {
-            IdDetalle = id,
-         NuevoSubtotal = body.Cantidad * body.PrecioUnitario
-       }
-    });
-            }
- catch (Exception ex)
-            {
-           _logger.LogError($"Error al actualizar detalle: {ex.Message}");
-      return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-            }
-        }
-
-      // ============================================================
-     // ? DELETE: Eliminar detalle de factura
-        // ============================================================
-        [HttpDelete("{id:int}")]
-        public ActionResult<ApiResponse<object>> EliminarDetalle(int id)
-   {
-            try
-          {
-         if (id <= 0)
-      {
-             return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de detalle no válido" });
-        }
-
-                // Verificar que el detalle existe
-       DataTable dtExiste = _detalleDAO.ObtenerDetallePorId(id);
-     if (dtExiste.Rows.Count == 0)
-         {
-              return NotFound(new ApiResponse<object> { Success = false, Mensaje = "Detalle no encontrado" });
+        return BadRequest(new { success = false, message = "El precio unitario no puede ser negativo" });
      }
 
-   _detalleDAO.EliminarDetalle(id);
+         _detalleDAO.InsertarDetalle(idFactura, idReserva, descripcion, cantidad, precioUnitario);
 
-     return Ok(new ApiResponse<object>
-           {
-          Success = true,
-        Mensaje = "Detalle eliminado correctamente",
-      Data = new { IdDetalle = id }
-              });
-}
-  catch (Exception ex)
+                return Ok(new
+                {
+    success = true,
+      message = "Detalle de factura creado correctamente",
+       idFactura = idFactura,
+    idReserva = idReserva,
+          subtotal = cantidad * precioUnitario
+           });
+     }
+       catch (Exception ex)
             {
-       _logger.LogError($"Error al eliminar detalle: {ex.Message}");
- return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-      }
+              _logger.LogError($"Error al crear detalle de factura: {ex.Message}");
+        return BadRequest(new { success = false, message = "Error al crear detalle de factura: " + ex.Message });
+         }
   }
 
-        // ============================================================
-// ? GET: Estadísticas de factura
-      // ============================================================
- [HttpGet("estadisticas/factura/{idFactura:int}")]
-        public ActionResult<ApiResponse<object>> ObtenerEstadisticasFactura(int idFactura)
+  // ? PUT: /api/detallefactura/{id}
+        [HttpPut("{id:int}")]
+        public IActionResult ActualizarDetalle(int id, [FromBody] dynamic body)
    {
-     try
+          try
+   {
+      if (id <= 0)
             {
-        if (idFactura <= 0)
-                {
-return BadRequest(new ApiResponse<object> { Success = false, Mensaje = "ID de factura no válido" });
-         }
+ return BadRequest(new { success = false, message = "ID de detalle no válido" });
+                }
 
-          decimal subtotalCalculado = _detalleDAO.CalcularSubtotalFactura(idFactura);
+   if (body == null)
+        {
+     return BadRequest(new { success = false, message = "Datos para actualizar requeridos" });
+             }
+
+ // Verificar que el detalle existe
+     DataTable dtExiste = _detalleDAO.ObtenerDetallePorId(id);
+     if (dtExiste.Rows.Count == 0)
+        {
+        return NotFound(new { success = false, message = "Detalle no encontrado" });
+        }
+
+  // Extraer datos
+       string descripcion = body.Descripcion?.ToString();
+  int cantidad = body.Cantidad != null ? Convert.ToInt32(body.Cantidad) : 1;
+        decimal precioUnitario = body.PrecioUnitario != null ? Convert.ToDecimal(body.PrecioUnitario) : 0;
+
+  // Validaciones
+    if (cantidad <= 0)
+           {
+      return BadRequest(new { success = false, message = "La cantidad debe ser mayor a cero" });
+                }
+
+      if (precioUnitario < 0)
+         {
+         return BadRequest(new { success = false, message = "El precio unitario no puede ser negativo" });
+   }
+
+   _detalleDAO.ActualizarDetalle(id, descripcion, cantidad, precioUnitario);
+
+ return Ok(new
+       {
+     success = true,
+        message = "Detalle actualizado correctamente",
+         idDetalle = id,
+ nuevoSubtotal = cantidad * precioUnitario
+             });
+          }
+    catch (Exception ex)
+            {
+      _logger.LogError($"Error al actualizar detalle: {ex.Message}");
+                return BadRequest(new { success = false, message = "Error al actualizar detalle: " + ex.Message });
+            }
+        }
+
+        // ? DELETE: /api/detallefactura/{id}
+   [HttpDelete("{id:int}")]
+        public IActionResult EliminarDetalle(int id)
+        {
+            try
+       {
+            if (id <= 0)
+           {
+ return BadRequest(new { success = false, message = "ID de detalle no válido" });
+      }
+
+      // Verificar que el detalle existe
+          DataTable dtExiste = _detalleDAO.ObtenerDetallePorId(id);
+      if (dtExiste.Rows.Count == 0)
+                {
+  return NotFound(new { success = false, message = "Detalle no encontrado" });
+      }
+
+       _detalleDAO.EliminarDetalle(id);
+
+           return Ok(new
+            {
+       success = true,
+       message = "Detalle eliminado correctamente",
+      idDetalle = id
+       });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error al eliminar detalle: {ex.Message}");
+    return BadRequest(new { success = false, message = "Error al eliminar detalle: " + ex.Message });
+        }
+     }
+
+  // ? GET: /api/detallefactura/estadisticas/factura/{idFactura}
+    [HttpGet("estadisticas/factura/{idFactura:int}")]
+        public IActionResult ObtenerEstadisticasFactura(int idFactura)
+        {
+  try
+            {
+              if (idFactura <= 0)
+ {
+        return BadRequest(new { success = false, message = "ID de factura no válido" });
+       }
+
+             decimal subtotalCalculado = _detalleDAO.CalcularSubtotalFactura(idFactura);
  int cantidadDetalles = _detalleDAO.ContarDetallesFactura(idFactura);
 
-         return Ok(new ApiResponse<object>
-         {
-             Success = true,
-          Mensaje = "Estadísticas obtenidas correctamente",
-    Data = new
-          {
-       IdFactura = idFactura,
-    Estadisticas = new
+    return Ok(new
       {
-                 SubtotalCalculado = subtotalCalculado,
-   CantidadDetalles = cantidadDetalles,
-      PromedioDetalle = cantidadDetalles > 0 ? subtotalCalculado / cantidadDetalles : 0
-     }
-   }
-         });
+      success = true,
+     message = "Estadísticas obtenidas correctamente",
+    idFactura = idFactura,
+       estadisticas = new
+        {
+       subtotalCalculado = subtotalCalculado,
+                cantidadDetalles = cantidadDetalles,
+      promedioDetalle = cantidadDetalles > 0 ? subtotalCalculado / cantidadDetalles : 0
+              }
+            });
     }
-      catch (Exception ex)
-  {
- _logger.LogError($"Error al obtener estadísticas: {ex.Message}");
-    return StatusCode(500, new ApiResponse<object> { Success = false, Mensaje = $"Error: {ex.Message}" });
-          }
+   catch (Exception ex)
+            {
+      _logger.LogError($"Error al obtener estadísticas: {ex.Message}");
+   return StatusCode(500, new { success = false, message = "Error al obtener estadísticas: " + ex.Message });
+        }
         }
 
-    // ============================================================
-        // ??? MÉTODOS AUXILIARES
         // ============================================================
+      // ??? MÉTODOS AUXILIARES
+    // ============================================================
+
+        // Convertir DataTable a Lista de diccionarios
         private List<Dictionary<string, object>> ConvertirDataTableALista(DataTable table)
         {
-          var lista = new List<Dictionary<string, object>>();
+            var lista = new List<Dictionary<string, object>>();
 
-            if (table == null || table.Rows.Count == 0)
+   if (table == null || table.Rows.Count == 0)
           {
        return lista;
-          }
+      }
 
-        foreach (DataRow row in table.Rows)
-        {
-      var diccionario = new Dictionary<string, object>();
-     foreach (DataColumn column in table.Columns)
-   {
+       foreach (DataRow row in table.Rows)
+  {
+     var diccionario = new Dictionary<string, object>();
+   foreach (DataColumn column in table.Columns)
+    {
          diccionario[column.ColumnName] = row[column] == DBNull.Value ? null : row[column];
-                }
-        lista.Add(diccionario);
+      }
+       lista.Add(diccionario);
      }
 
-            return lista;
+        return lista;
         }
-    }
-
-    // ============================================================
-  // DTOs
-    // ============================================================
-    public class CrearDetalleDto
-    {
-        public int IdFactura { get; set; }
-        public int IdReserva { get; set; }
-  public string Descripcion { get; set; } = "";
-        public int Cantidad { get; set; }
-        public decimal PrecioUnitario { get; set; }
-  }
-
-    public class ActualizarDetalleDto
- {
-        public string Descripcion { get; set; } = "";
-  public int Cantidad { get; set; }
- public decimal PrecioUnitario { get; set; }
-  }
+ }
 }
